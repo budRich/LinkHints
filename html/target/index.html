@@ -53,8 +53,7 @@
     <p><a href="http://example.com">no target and other hostname</a></p>
     <p>
       <a href="https://example.com"
-        >no target and other hostname and other protocol</a
-      >
+        >no target and other hostname and other protocol</a>
     </p>
     <p><a href="http://sub.localhost:5000">no target and other subdomain</a></p>
     <p><a href="http://localhost:5001">no target and other port number</a></p>
@@ -67,30 +66,26 @@
         href="https://example.com/event1"
         target="_blank"
         onclick="console.log('Click _blank with inline return false'); return false"
-        >target=_blank with inline return false (and different URL)</a
-      >
+        >target=_blank with inline return false (and different URL)</a>
     </p>
     <p>
       <a
         href="https://example.com/event2"
         target="_blank"
         onclick="window.event.preventDefault()"
-        >target=_blank with window.event.preventDefault() (and different URL)</a
-      >
+        >target=_blank with window.event.preventDefault() (and different URL)</a>
     </p>
     <p>
       <a href="https://example.com/event3" target="_blank" id="stopImmediate"
         >target=_blank with event.stopImmediatePropagation() followed by
-        event.preventDefault() (and different URL)</a
-      >
+        event.preventDefault() (and different URL)</a>
     </p>
     <p>
       <a
         href="https://example.com/event4"
         target="_blank"
         onclick="window.open('https://example.com/open1'); window.open('https://example.com/open2', '')"
-        >target=_blank and two window.open (and different URL)</a
-      >
+        >target=_blank and two window.open (and different URL)</a>
     </p>
 
     <!-- prettier-ignore -->
