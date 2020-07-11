@@ -1,4 +1,3 @@
-// @flow strict-local
 
 import spawn from "cross-spawn";
 import crx3 from "crx3";

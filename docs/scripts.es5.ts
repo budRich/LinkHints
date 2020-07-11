@@ -1,4 +1,3 @@
-// @flow strict-local
 /* global module */
 
 function macifyKbd() {

@@ -1,5 +1,3 @@
-// @flow strict-local
-
 import * as React from "preact";
 import renderToString from "preact-render-to-string";
 
@@ -9,10 +7,10 @@ export default ({
   js,
   css,
 }: {
-  title: string,
-  polyfill: ?string,
-  js: Array<string>,
-  css: Array<string>,
+  title: string;
+  polyfill: ?string;
+  js: Array<string>;
+  css: Array<string>;
 }) => {
   const doc = (
     <html lang="en">

@@ -1,4 +1,3 @@
-// @flow
 
 import { makeRandomToken } from "../shared/main";
 

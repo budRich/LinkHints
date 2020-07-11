@@ -1,4 +1,3 @@
-// @flow
 
 import { type Decoder, map, number, repr } from "tiny-decoders";
 

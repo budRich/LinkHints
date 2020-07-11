@@ -1,4 +1,3 @@
-// @flow strict-local
 
 import * as React from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";

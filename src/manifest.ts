@@ -1,4 +1,3 @@
-// @flow strict-local
 
 import config from "../project.config";
 

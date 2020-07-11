@@ -1,5 +1,3 @@
-// @flow
-
 import * as React from "preact";
 
 import { shortcuts } from "./KeyboardShortcuts";

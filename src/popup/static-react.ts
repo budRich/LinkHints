@@ -1,4 +1,3 @@
-// @flow strict-local
 
 const React = {
   createElement(

@@ -1,5 +1,3 @@
-// @flow strict-local
-
 import * as React from "preact";
 
 import config from "../project.config";
@@ -10,10 +8,10 @@ export default function Page({
   css,
   children,
 }: {
-  title: string,
-  description: string,
-  css: string,
-  children: React.Node,
+  title: string;
+  description: string;
+  css: string;
+  children: React.Node;
 }) {
   return (
     <html lang="en">

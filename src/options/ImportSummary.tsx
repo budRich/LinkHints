@@ -1,5 +1,3 @@
-// @flow strict-local
-
 import * as React from "preact";
 
 export default function ImportSummary({
@@ -7,9 +5,9 @@ export default function ImportSummary({
   tweakable,
   errors,
 }: {
-  success: number,
-  tweakable: number,
-  errors: number,
+  success: number;
+  tweakable: number;
+  errors: number;
 }) {
   const successString = success === 1 ? `1 value` : `${success} values`;
   const tweakableString =

@@ -1,4 +1,3 @@
-// @flow strict-local
 
 import jsTokens, { type Token } from "js-tokens";
 import * as React from "preact";

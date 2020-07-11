@@ -1,5 +1,3 @@
-// @flow strict-local
-
 import * as React from "preact";
 
 import { classlist } from "../shared/main";
@@ -16,16 +14,16 @@ export default function Field({
   render,
   onReset,
 }: {
-  id: string,
-  connected?: boolean,
-  fullWidth?: boolean,
-  label: React.Node,
-  span?: boolean,
-  description?: React.Node,
-  changed: boolean,
-  changedRight?: boolean,
-  render: ({ id: string }) => React.Node,
-  onReset?: () => void,
+  id: string;
+  connected?: boolean;
+  fullWidth?: boolean;
+  label: React.Node;
+  span?: boolean;
+  description?: React.Node;
+  changed: boolean;
+  changedRight?: boolean;
+  render: ({ id: string }) => React.Node;
+  onReset?: () => void;
 }) {
   const reset =
     onReset != null && changed ? (

@@ -1,5 +1,3 @@
-// @flow strict-local
-
 import * as React from "preact";
 
 import config from "../project.config";
@@ -464,17 +462,17 @@ function Demo({
   title,
   filterByText = false,
 }: {
-  title: React.Node,
-  filterByText?: boolean,
+  title: React.Node;
+  filterByText?: boolean;
 }) {
   function Hint({
     hint2,
     highlighted = false,
     children,
   }: {
-    hint2?: string,
-    highlighted?: boolean,
-    children: string,
+    hint2?: string;
+    highlighted?: boolean;
+    children: string;
   }) {
     return filterByText && hint2 == null ? null : (
       <span

@@ -1,4 +1,3 @@
-// @flow strict-local
 
 import { type Decoder, array, map, repr, string } from "tiny-decoders";
 

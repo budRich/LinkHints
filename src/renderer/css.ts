@@ -1,5 +1,3 @@
-// @flow strict-local
-
 // This file contains a light-weight good-enough (but in no way spec-compliant)
 // CSS parser, used as a workaround for Firefox's over-eager CSP implementation.
 // See <bugzil.la/1267027>.
@@ -7,14 +5,14 @@
 import { partition } from "../shared/main";
 
 export type Rule = {
-  selector: string,
-  declarations: Array<Declaration>,
+  selector: string;
+  declarations: Array<Declaration>;
 };
 
 export type Declaration = {
-  property: string,
-  value: string,
-  important: boolean,
+  property: string;
+  value: string;
+  important: boolean;
 };
 
 // Mostly copied from <https://github.com/lydell/css-tokens>.

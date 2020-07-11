@@ -1,4 +1,3 @@
-// @flow strict-local
 
 import * as React from "preact";
 import Shadow from "preact-shadow-root";

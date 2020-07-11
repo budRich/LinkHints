@@ -1,4 +1,3 @@
-// @flow strict-local
 
 import {
   type ElementReport,

@@ -1,5 +1,3 @@
-// @flow strict-local
-
 import { addListener, bind, log, Resets, unreachable } from "../shared/main";
 import type {
   FromBackground,

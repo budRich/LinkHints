@@ -1,5 +1,3 @@
-// @flow strict-local
-
 import * as React from "preact";
 
 type Modifier = boolean | { mac: "alt" | "cmd" | "ctrl" | "shift" };
@@ -17,10 +15,10 @@ export default function KeyboardShortcut({
   shift = false,
   press = "",
 }: {
-  alt?: Modifier,
-  ctrl?: Modifier,
-  shift?: Modifier,
-  press?: string,
+  alt?: Modifier;
+  ctrl?: Modifier;
+  shift?: Modifier;
+  press?: string;
 }) {
   const modifiers = [
     [MODIFIER_NAMES.ctrl, ctrl],
@@ -52,8 +50,8 @@ function MainShortcut({
   shift = false,
   press,
 }: {
-  shift?: boolean,
-  press: string,
+  shift?: boolean;
+  press: string;
 }) {
   return <KeyboardShortcut alt={{ mac: "ctrl" }} shift={shift} press={press} />;
 }
