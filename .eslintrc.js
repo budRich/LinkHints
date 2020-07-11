@@ -1,11 +1,20 @@
-const baseRules = require("eslint-config-lydell");
-
 module.exports = {
   root: true,
-  parser: "babel-eslint",
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "prettier",
+    "prettier/@typescript-eslint",
+    // TODO: React
+  ],
+  plugins: ["simple-import-sort"],
+  parserOptions: {
+    project: "./tsconfig.json",
+  },
+  root: true,
   plugins: [
-    "babel",
-    "flowtype",
+    "@typescript-eslint",
     "import",
     "react",
     "react-hooks",
@@ -16,11 +25,6 @@ module.exports = {
     node: true,
   },
   rules: {
-    ...baseRules({ flow: true, import: true, react: true }),
-    "babel/no-invalid-this": "error",
-    "import/default": "off",
-    "import/named": "off",
-    "import/namespace": "off",
     "import/no-restricted-paths": [
       "error",
       {
@@ -35,51 +39,39 @@ module.exports = {
         ]),
       },
     ],
-    "no-invalid-this": "off",
-    "no-script-url": "off",
-    "react/prop-types": "off",
-    "react/require-default-props": "off",
     "react/self-closing-comp": "error",
     "require-await": "error",
     "simple-import-sort/sort": "error",
   },
   overrides: [
     {
-      files: [".*.js", "*.config.js", "web-ext-*.js", "scripts/*.js"],
-      rules: {
-        "flowtype/require-parameter-type": "off",
-        "flowtype/require-return-type": "off",
-        "flowtype/require-valid-file-annotation": "off",
-      },
-    },
-    {
-      files: ["src/*/**/*.js"],
+      files: ["src/*/**/*.ts"],
       env: {
         es6: true,
         node: false,
       },
-      globals: {
-        ...baseRules.browserEnv(),
-        BROWSER: false,
-        browser: false,
-        BUILD_ID: false,
-        COLOR_BADGE: false,
-        COLOR_GREEN: false,
-        COLOR_PURPLE: false,
-        COLOR_YELLOW: false,
-        DEFAULT_LOG_LEVEL_CONFIG: false,
-        DEFAULT_STORAGE_SYNC: false,
-        exportFunction: false,
-        META_HOMEPAGE: false,
-        META_ICON: false,
-        META_NAME: false,
-        META_SLUG: false,
-        META_TUTORIAL: false,
-        META_VERSION: false,
-        navigator: false,
-        PROD: false,
-        XPCNativeWrapper: false,
-      },
+      // globals: {
+      //   ...baseRules.browserEnv(),
+      //   BROWSER: false,
+      //   browser: false,
+      //   BUILD_ID: false,
+      //   COLOR_BADGE: false,
+      //   COLOR_GREEN: false,
+      //   COLOR_PURPLE: false,
+      //   COLOR_YELLOW: false,
+      //   DEFAULT_LOG_LEVEL_CONFIG: false,
+      //   DEFAULT_STORAGE_SYNC: false,
+      //   exportFunction: false,
+      //   META_HOMEPAGE: false,
+      //   META_ICON: false,
+      //   META_NAME: false,
+      //   META_SLUG: false,
+      //   META_TUTORIAL: false,
+      //   META_VERSION: false,
+      //   navigator: false,
+      //   PROD: false,
+      //   XPCNativeWrapper: false,
+      // },
       rules: {
         "no-console": "error",
       },
@@ -92,9 +84,8 @@ module.exports = {
         es6: false,
         node: false,
       },
-      globals: baseRules.browserEnv(),
+      // globals: baseRules.browserEnv(),
       rules: {
-        "flowtype/require-parameter-type": "off",
         "no-implicit-globals": "off",
         "no-var": "off",
         "object-shorthand": "off",
@@ -112,7 +103,7 @@ module.exports = {
         es6: true,
         node: false,
       },
-      globals: baseRules.browserEnv(),
+      // globals: baseRules.browserEnv(),
       rules: {
         "flowtype/require-parameter-type": "off",
       },
@@ -121,7 +112,6 @@ module.exports = {
   settings: {
     react: {
       version: "16.10",
-      flowVersion: "detect",
     },
   },
 };
