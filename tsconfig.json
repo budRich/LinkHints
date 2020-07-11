@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "importsNotUsedAsValues": "error",
+    "isolatedModules": true,
+    "module": "ESNext",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ESNext"
+    // "allowSyntheticDefaultImports": true,
+    // "esModuleInterop": true,
+    // "moduleResolution": "node",
+  }
+}
