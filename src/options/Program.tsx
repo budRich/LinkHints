@@ -18,11 +18,11 @@ import {
   SUGGESTION_VIMIUM,
 } from "../shared/css";
 import {
-  type KeyboardMapping,
-  type KeyPair,
-  type Keypress,
-  type KeyTranslations,
-  type NormalizedKeypress,
+  KeyboardMapping,
+  KeyPair,
+  Keypress,
+  KeyTranslations,
+  NormalizedKeypress,
   isModifierKey,
   keyboardEventToKeypress,
   normalizeKeypress,
@@ -51,7 +51,7 @@ import {
   importOptions,
   normalizeChars,
 } from "../shared/options";
-import { type TabsPerf } from "../shared/perf";
+import type { TabsPerf } from "../shared/perf";
 import Attachment from "./Attachment";
 import ButtonWithPopup from "./ButtonWithPopup";
 import CSSPreview from "./CSSPreview";
@@ -1729,11 +1729,11 @@ function selectFile(accept: string): Promise<File> {
   });
 }
 
-function readAsJson(file: File): Promise<mixed> {
+function readAsJson(file: File): Promise<unknown> {
   return new Response(file).json();
 }
 
-function mixedObject(value: mixed): { +[string]: mixed, ... } {
+function mixedObject(value: unknown): { +[string]: unknown, ... } {
   if (typeof value !== "object" || value == null || Array.isArray(value)) {
     throw new TypeError(`Expected an object, but got: ${repr(value)}`);
   }

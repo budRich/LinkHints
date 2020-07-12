@@ -1,4 +1,3 @@
-
 import * as React from "preact";
 import Shadow from "preact-shadow-root";
 import { useEffect, useRef, useState } from "preact/hooks";
@@ -20,7 +19,7 @@ import {
   TEXT_RECT_CLASS,
 } from "../shared/css";
 import {
-  type Box,
+  Box,
   classlist,
   getTextRects,
   isMixedCase,
@@ -62,9 +61,9 @@ export default function CSSPreview({
   css,
   peek,
 }: {
-  chars: string,
-  css: string,
-  peek: boolean,
+  chars: string;
+  css: string;
+  peek: boolean;
 }) {
   const containerRef = useRef();
   const filterByTextRef = useRef();
@@ -105,12 +104,12 @@ export default function CSSPreview({
     highlighted = false,
     hidden = false,
   }: {
-    left: number,
-    top: number,
-    matchedChars?: string,
-    chars: string,
-    highlighted?: boolean,
-    hidden?: boolean,
+    left: number;
+    top: number;
+    matchedChars?: string;
+    chars: string;
+    highlighted?: boolean;
+    hidden?: boolean;
   }) => {
     hintZIndex--;
     const hasMatchedChars = matchedChars !== "";

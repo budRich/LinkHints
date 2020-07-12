@@ -1,6 +1,6 @@
 
 import {
-  type Decoder,
+  Decoder,
   array,
   boolean,
   dict,
@@ -11,9 +11,9 @@ import {
 } from "tiny-decoders";
 
 import {
-  type KeyboardMapping,
-  type KeyTranslations,
-  type Shortcut,
+  KeyboardMapping,
+  KeyTranslations,
+  Shortcut,
   decodeKeyboardMapping,
   decodeKeyboardMappingWithModifiers,
   decodeKeyPair,
@@ -22,7 +22,7 @@ import {
   serializeShortcut,
 } from "./keyboard";
 import {
-  type LogLevel,
+  LogLevel,
   decodeLogLevel,
   decodeUnsignedInt,
   deepEqual,
@@ -51,7 +51,7 @@ export type Options = {
 
 export type PartialOptions = $Shape<Options>;
 
-export type FlatOptions = { [string]: mixed, ... };
+export type FlatOptions = { [string]: unknown, ... };
 
 export function makeOptionsDecoder(defaults: Options): Decoder<Options> {
   return fields((field) => ({
@@ -318,7 +318,7 @@ const PREFIX_REGEX = /([^.]+)\.([^]*)/;
 export function unflattenOptions(object: FlatOptions): FlatOptions {
   const options = {};
 
-  function set(parent: string, key: string, value: mixed) {
+  function set(parent: string, key: string, value: unknown) {
     if (!(typeof options[parent] === "object" && options[parent] != null)) {
       options[parent] = {};
     }
@@ -327,7 +327,7 @@ export function unflattenOptions(object: FlatOptions): FlatOptions {
     }
   }
 
-  function pushShortcut(parent: string, key: string, value: mixed) {
+  function pushShortcut(parent: string, key: string, value: unknown) {
     if (!Array.isArray(options[parent])) {
       options[parent] = [];
     }

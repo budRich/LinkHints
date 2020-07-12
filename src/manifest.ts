@@ -3,7 +3,7 @@ import config from "../project.config";
 
 type IconsList = Array<[number, string]>;
 type Icons = { svg: IconsList, png: IconsList };
-type IconSizes = { [size: string]: string, ... };
+type IconSizes = { [size: string]: string };
 
 export default () =>
   toJSON({
@@ -59,11 +59,11 @@ export default () =>
     ],
   });
 
-function toJSON(obj: { [string]: mixed, ... }): string {
+function toJSON(obj: { [string]: unknown, ... }): string {
   return JSON.stringify(obj, undefined, 2);
 }
 
-function getBrowserSpecificSettings(browser: ?Browser): mixed {
+function getBrowserSpecificSettings(browser: ?Browser): unknown {
   switch (browser) {
     case "chrome":
       return undefined;

@@ -135,7 +135,7 @@ function js({ input, output } /*: { input: string, output: string } */) {
       commonjs(),
       PROD ? prettier({ parser: "babel" }) : undefined,
     ].filter(Boolean),
-    onwarn: (warning /*: mixed */) => {
+    onwarn: (warning /*: unknown */) => {
       throw warning;
     },
   };
@@ -155,7 +155,7 @@ function template(
   } /*: {
     input: string,
     output: string,
-    data?: mixed,
+    data?: unknown,
   } */
 ) {
   let content = undefined;

@@ -23,7 +23,7 @@ import type {
   HintUpdate,
 } from "../shared/hints";
 import {
-  type Box,
+  Box,
   addEventListener,
   addListener,
   bind,
@@ -42,7 +42,7 @@ import type {
 } from "../shared/messages";
 import { TimeTracker } from "../shared/perf";
 import { tweakable, unsignedInt } from "../shared/tweakable";
-import { type Rule, applyStyles, parseCSS } from "./css";
+import { Rule, applyStyles, parseCSS } from "./css";
 
 type HintSize = {
   widthBase: number,

@@ -27,7 +27,7 @@ const declRegex = /^\s*([^\s:]+)\s*:([^;]+?)(!\s*important\s*)?$/i;
 export function parseCSS(css: string): Array<Rule> {
   const normalized = css.replace(
     stringsAndCommentsAndUrlsRegex,
-    (match, string, quote, comment, url) => {
+    (match, string, _quote, comment, url) => {
       // Escape characters inside strings and unquoted urls that make other
       // parsing harder. Hacky, but simple. And good enough.
       if (string != null || url != null) {

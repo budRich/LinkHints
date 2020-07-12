@@ -1,23 +1,22 @@
-
-import {
-  type ElementReport,
-  type ElementType,
-  type ElementTypes,
-  type VisibleElement,
+import type {
+  ElementReport,
+  ElementType,
+  ElementTypes,
+  VisibleElement,
 } from "../shared/hints";
 import {
-  type KeyboardMapping,
-  type KeyboardModeWorker,
-  type KeyTranslations,
   isModifierKey,
   keyboardEventToKeypress,
+  KeyboardMapping,
+  KeyboardModeWorker,
+  KeyTranslations,
   normalizeKeypress,
 } from "../shared/keyboard";
 import {
-  type Box,
   addEventListener,
   addListener,
   bind,
+  Box,
   CONTAINER_ID,
   extractText,
   getLabels,
@@ -37,16 +36,16 @@ import type {
 } from "../shared/messages";
 import { TimeTracker } from "../shared/perf";
 import { selectorString, tweakable, unsignedInt } from "../shared/tweakable";
-import { type FrameMessage, decodeFrameMessage } from "./decoders";
+import { decodeFrameMessage, FrameMessage } from "./decoders";
 import ElementManager from "./ElementManager";
 
 type CurrentElements = {
-  elements: Array<VisibleElement>,
-  frames: Array<HTMLIFrameElement | HTMLFrameElement>,
-  viewports: Array<Box>,
-  types: ElementTypes,
-  indexes: Array<number>,
-  words: Array<string>,
+  elements: Array<VisibleElement>;
+  frames: Array<HTMLIFrameElement | HTMLFrameElement>;
+  viewports: Array<Box>;
+  types: ElementTypes;
+  indexes: Array<number>;
+  words: Array<string>;
 };
 
 export const t = {
@@ -61,14 +60,14 @@ export const t = {
 export const tMeta = tweakable("Worker", t);
 
 export default class WorkerProgram {
-  isPinned: boolean = true;
+  isPinned = true;
   keyboardShortcuts: Array<KeyboardMapping> = [];
   keyboardMode: KeyboardModeWorker = "Normal";
   keyTranslations: KeyTranslations = {};
   current: ?CurrentElements = undefined;
   oneTimeWindowMessageToken: ?string = undefined;
-  mac: boolean = false;
-  suppressNextKeyup: ?{ key: string, code: string } = undefined;
+  mac = false;
+  suppressNextKeyup: ?{ key: string; code: string } = undefined;
   resets: Resets = new Resets();
   elementManager: ElementManager = new ElementManager({
     onMutation: this.onMutation.bind(this),
@@ -739,8 +738,8 @@ export default class WorkerProgram {
     current,
     oneTimeWindowMessageToken,
   }: {
-    current: CurrentElements,
-    oneTimeWindowMessageToken: ?string,
+    current: CurrentElements;
+    oneTimeWindowMessageToken: ?string;
   }) {
     const [elements, timeLeft]: [
       Array<?VisibleElement>,
@@ -1170,7 +1169,7 @@ function suppressEvent(event: Event) {
 
 function makeElementReports(
   elements: Array<?VisibleElement>,
-  { maxDuration, prefix }: { maxDuration: number, prefix: string }
+  { maxDuration, prefix }: { maxDuration: number; prefix: string }
 ): Array<ElementReport> {
   const startTime = Date.now();
 
@@ -1204,7 +1203,7 @@ function makeElementReports(
 
 function visibleElementToElementReport(
   { element, type, measurements, hasClickListener }: VisibleElement,
-  { index, textContent }: { index: number, textContent: boolean }
+  { index, textContent }: { index: number; textContent: boolean }
 ): ElementReport {
   const text = textContent
     ? element.textContent
@@ -1290,11 +1289,11 @@ export function getTextRectsHelper({
   words,
   checkElementAtPoint,
 }: {
-  element: HTMLElement,
-  type: ElementType,
-  viewports: Array<Box>,
-  words: Set<string>,
-  checkElementAtPoint?: boolean,
+  element: HTMLElement;
+  type: ElementType;
+  viewports: Array<Box>;
+  words: Set<string>;
+  checkElementAtPoint?: boolean;
 }): Array<Box> {
   // See `extractTextHelper`.
   if (type === "scrollable") {
@@ -1350,11 +1349,11 @@ function firefoxPopupBlockerWorkaround({
   element,
   isPinned,
 }: {
-  element: HTMLElement,
-  isPinned: boolean,
+  element: HTMLElement;
+  isPinned: boolean;
 }): () => {
-  pagePreventedDefault: ?boolean,
-  urlsToOpenInNewTabs: Array<string>,
+  pagePreventedDefault: ?boolean;
+  urlsToOpenInNewTabs: Array<string>;
 } {
   const prefix = "firefoxPopupBlockerWorkaround";
 
@@ -1503,7 +1502,7 @@ function firefoxPopupBlockerWorkaround({
       override(
         "stopImmediatePropagation",
         (originalStopImmediatePropagation) =>
-          function stopImmediatePropagation(): mixed {
+          function stopImmediatePropagation(): unknown {
             /* eslint-disable babel/no-invalid-this */
             // We’re already done – just skip remaining listeners.
             if (defaultPrevented !== "NotPrevented") {
@@ -1539,7 +1538,7 @@ function firefoxPopupBlockerWorkaround({
               override(
                 "preventDefault",
                 (originalPreventDefault) =>
-                  function preventDefault(): mixed {
+                  function preventDefault(): unknown {
                     log(
                       "log",
                       prefix,
@@ -1567,11 +1566,11 @@ function firefoxPopupBlockerWorkaround({
   const originalOpen = window.wrappedJSObject.open;
   exportFunction(
     function open(
-      url: mixed,
-      target: mixed,
-      features: mixed,
-      ...args: Array<mixed>
-    ): mixed {
+      url: unknown,
+      target: unknown,
+      features: unknown,
+      ...args: Array<unknown>
+    ): unknown {
       // These may throw exceptions: `{ toString() { throw new Error } }`;
       // If so – let that happen, just like standard `window.open`. If they
       // throw we simply don’t continue.
@@ -1682,7 +1681,7 @@ function flashElement(element: HTMLElement) {
 function temporarilySetFilter(
   element: HTMLElement,
   value: string
-): { apply: () => void, reset: () => void } {
+): { apply: () => void; reset: () => void } {
   const prop = "filter";
   const originalValue = element.style.getPropertyValue(prop);
   const important = element.style.getPropertyPriority(prop);

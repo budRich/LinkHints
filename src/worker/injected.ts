@@ -69,8 +69,8 @@ export type FromInjected =
   | { type: "Queue", hasQueue: boolean };
 
 export default (communicator?: {
-  +onInjectedMessage: (FromInjected) => mixed,
-  +addEventListener: (string, () => mixed, _?: true) => mixed,
+  +onInjectedMessage: (FromInjected) => unknown,
+  +addEventListener: (string, () => unknown, _?: true) => unknown,
   ...
 }) => {
   // Refers to the page `window` both in Firefox and other browsers.
@@ -97,7 +97,7 @@ export default (communicator?: {
   const { apply } = Reflect;
   const { get: mapGet } = Map.prototype;
 
-  function logError(...args: Array<mixed>) {
+  function logError(...args: Array<unknown>) {
     consoleLogError(`[${META_SLUG}]`, ...args);
   }
 
@@ -137,7 +137,7 @@ export default (communicator?: {
     // `hook` is run _after_ the original function. If you need to do something
     // _before_ the original function is called, use a `prehook`.
     hookInto<T>(
-      obj: { [string]: mixed, ... },
+      obj: { [string]: unknown, ... },
       name: string,
       hook?: (
         { returnValue: any, prehookData: T | void },
@@ -288,14 +288,14 @@ export default (communicator?: {
 
   function logHookError(
     error: Error,
-    obj: { [string]: mixed, ... },
+    obj: { [string]: unknown, ... },
     name: string
   ) {
     logError(`Failed to run hook for ${name} on`, obj, error);
   }
 
   type ClickListenersByElement = Map<HTMLElement, OptionsByListener>;
-  type OptionsByListener = Map<mixed, OptionsSet>;
+  type OptionsByListener = Map<unknown, OptionsSet>;
   type OptionsSet = Set<string>;
 
   // Changes to event listeners.
@@ -314,8 +314,8 @@ export default (communicator?: {
     added: boolean,
     element: HTMLElement,
     eventName: string,
-    listener: mixed,
-    options: mixed,
+    listener: unknown,
+    options: unknown,
   };
 
   // Elements waiting to be sent to ElementManager.js (in Chrome only).
@@ -615,7 +615,7 @@ export default (communicator?: {
 
   const optionNames: Array<string> = ["capture", "once", "passive"];
 
-  function stringifyOptions(eventName: string, options: mixed): string {
+  function stringifyOptions(eventName: string, options: unknown): string {
     const normalized =
       options == null || typeof options !== "object"
         ? { capture: Boolean(options) }
@@ -747,10 +747,10 @@ export default (communicator?: {
   const hookManager = new HookManager();
 
   function onAddEventListener(
-    element: mixed,
-    eventName: mixed,
-    listener: mixed,
-    options: mixed
+    element: unknown,
+    eventName: unknown,
+    listener: unknown,
+    options: unknown
   ) {
     if (
       !(
@@ -793,10 +793,10 @@ export default (communicator?: {
   }
 
   function onRemoveEventListener(
-    element: mixed,
-    eventName: mixed,
-    listener: mixed,
-    options: mixed
+    element: unknown,
+    eventName: unknown,
+    listener: unknown,
+    options: unknown
   ) {
     if (
       !(
@@ -822,7 +822,7 @@ export default (communicator?: {
     });
   }
 
-  function onPropChangePreHook(element: mixed): QueueItem | void {
+  function onPropChangePreHook(element: unknown): QueueItem | void {
     if (!(element instanceof HTMLElement2)) {
       return undefined;
     }

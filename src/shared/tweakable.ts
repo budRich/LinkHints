@@ -1,7 +1,7 @@
 
-import { type Decoder, array, map, repr, string } from "tiny-decoders";
+import { Decoder, array, map, repr, string } from "tiny-decoders";
 
-import { type ElementType, decodeElementType } from "./hints";
+import { ElementType, decodeElementType } from "./hints";
 import {
   addListener,
   decodeUnsignedFloat,
@@ -100,7 +100,7 @@ export function tweakable(
   const changed: { [$Keys<typeof mapping>]: boolean, ... } = {};
   const errors: { [$Keys<typeof mapping>]: ?string, ... } = {};
 
-  function update(data: { [string]: mixed, ... }) {
+  function update(data: { [string]: unknown, ... }) {
     for (const [key, value] of Object.entries(data)) {
       try {
         if (!{}.hasOwnProperty.call(defaults, key)) {

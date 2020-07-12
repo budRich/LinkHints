@@ -17,7 +17,6 @@ export default function ButtonWithPopup({
   open?: boolean,
   onChange?: (boolean) => void,
   className?: string,
-  ...
 }) {
   const onChangeRef = useRef();
   onChangeRef.current = onChange;

@@ -7,7 +7,7 @@ import type {
   VisibleElement,
 } from "../shared/hints";
 import {
-  type Box,
+  Box,
   addEventListener,
   bind,
   getElementFromPoint,
@@ -33,7 +33,7 @@ import {
   unsignedInt,
 } from "../shared/tweakable";
 import injected, {
-  type FromInjected,
+  FromInjected,
   CLICKABLE_CHANGED_EVENT,
   CLICKABLE_EVENT_NAMES,
   CLICKABLE_EVENT_PROPS,
@@ -217,7 +217,7 @@ type Rejected = {
   isRejected: true,
   debug: {
     reason: string,
-    [string]: mixed,
+    [string]: unknown,
     ...
   },
 };
@@ -266,10 +266,10 @@ const infiniteDeadline: Deadline = {
 };
 
 export default class ElementManager {
-  onMutationExternal: (Array<MutationRecord>) => mixed;
+  onMutationExternal: (Array<MutationRecord>) => unknown;
   queue: Queue<QueueItem> = makeEmptyQueue();
   injectedHasQueue: boolean = false;
-  injectedListeners: Map<string, Array<() => mixed>> = new Map();
+  injectedListeners: Map<string, Array<() => unknown>> = new Map();
   elements: Map<HTMLElement, ElementType> = new Map();
   visibleElements: Set<HTMLElement> = new Set();
   visibleFrames: Set<HTMLIFrameElement | HTMLFrameElement> = new Set();
@@ -300,7 +300,7 @@ export default class ElementManager {
   constructor({
     onMutation,
   }: {
-    onMutation: (Array<MutationRecord>) => mixed,
+    onMutation: (Array<MutationRecord>) => unknown,
   }) {
     this.onMutationExternal = onMutation;
 
@@ -710,7 +710,7 @@ export default class ElementManager {
     }
   }
 
-  addEventListener(eventName: string, fn: () => mixed) {
+  addEventListener(eventName: string, fn: () => unknown) {
     const previous = this.injectedListeners.get(eventName) || [];
     this.injectedListeners.set(eventName, previous.concat(fn));
   }

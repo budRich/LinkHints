@@ -1,6 +1,6 @@
 
 import {
-  type Decoder,
+  Decoder,
   array,
   autoRecord,
   dict,
