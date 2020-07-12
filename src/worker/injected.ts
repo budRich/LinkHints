@@ -70,8 +70,7 @@ export type FromInjected =
 
 export default (communicator?: {
   +onInjectedMessage: (FromInjected) => unknown,
-  +addEventListener: (string, () => unknown, _?: true) => unknown,
-  ...
+  +addEventListener: (string, () => unknown, _?: true) => unknown
 }) => {
   // Refers to the page `window` both in Firefox and other browsers.
   const win = BROWSER === "firefox" ? window.wrappedJSObject || window : window;
@@ -101,7 +100,7 @@ export default (communicator?: {
     consoleLogError(`[${META_SLUG}]`, ...args);
   }
 
-  type Deadline = { timeRemaining: () => number, ... };
+  type Deadline = { timeRemaining: () => number };
 
   const infiniteDeadline: Deadline = {
     timeRemaining: () => Infinity,
@@ -137,7 +136,7 @@ export default (communicator?: {
     // `hook` is run _after_ the original function. If you need to do something
     // _before_ the original function is called, use a `prehook`.
     hookInto<T>(
-      obj: { [string]: unknown, ... },
+      obj: { [string]: unknown },
       name: string,
       hook?: (
         { returnValue: any, prehookData: T | void },
@@ -288,7 +287,7 @@ export default (communicator?: {
 
   function logHookError(
     error: Error,
-    obj: { [string]: unknown, ... },
+    obj: { [string]: unknown },
     name: string
   ) {
     logError(`Failed to run hook for ${name} on`, obj, error);
@@ -837,8 +836,7 @@ export default (communicator?: {
   function onPropChange({
     prehookData,
   }: {
-    prehookData: QueueItem | void,
-    ...
+    prehookData: QueueItem | void
   }) {
     if (prehookData != null) {
       clickListenerTracker.queueItem(prehookData);
@@ -848,8 +846,7 @@ export default (communicator?: {
   function onShadowRootCreated({
     returnValue: shadowRoot,
   }: {
-    returnValue: ShadowRoot,
-    ...
+    returnValue: ShadowRoot
   }) {
     if (communicator != null) {
       communicator.onInjectedMessage({

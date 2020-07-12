@@ -5,8 +5,7 @@ const React = {
     props: ?{
       className?: ?string,
       onClick?: ?(MouseEvent<HTMLElement>) => unknown,
-      [string]: ?string,
-      ...
+      [string]: ?string
     },
     ...children: Array<?(string | HTMLElement | boolean)>
   ): HTMLElement {

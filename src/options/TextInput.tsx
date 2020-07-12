@@ -22,8 +22,7 @@ export default function TextInput({
   save?: (string, Reason) => void,
   textarea?: boolean,
   className?: string,
-  onKeyDown?: (SyntheticKeyboardEvent<HTMLInputElement>) => void,
-  ...
+  onKeyDown?: (SyntheticKeyboardEvent<HTMLInputElement>) => void
 }) {
   const Tag = textarea ? "textarea" : "input";
   const readonly = saveProp == null;

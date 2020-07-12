@@ -104,7 +104,7 @@ Example:
     }
 */
 export function bind(
-  object: { [string]: unknown, ... },
+  object: { [string]: unknown },
   methods: Array<Method | [Method, { log?: boolean, catch?: boolean }]>
 ) {
   for (const item of methods) {
@@ -170,8 +170,7 @@ export function addEventListener(
 export function addListener<Listener, Options>(
   target: {
     addListener: (Listener, options?: Options) => void,
-    removeListener: (Listener) => void,
-    ...
+    removeListener: (Listener) => void
   },
   listener: Listener,
   options?: Options
@@ -302,7 +301,7 @@ export function getViewport(): Box {
 
 export function setStyles(
   element: HTMLElement,
-  styles: { [string]: string, ... }
+  styles: { [string]: string }
 ) {
   for (const [property, value] of Object.entries(styles)) {
     // $FlowIgnore: Flow thinks that `value` is `unknown` here, but it is a `string`.
@@ -495,7 +494,7 @@ export function getLabels(element: HTMLElement): ?NodeList<HTMLLabelElement> {
 }
 
 export function classlist(
-  ...args: Array<string | { [string]: boolean, ... }>
+  ...args: Array<string | { [string]: boolean }>
 ): string {
   return args
     .flatMap((arg) =>

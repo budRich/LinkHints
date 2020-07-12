@@ -217,8 +217,7 @@ type Rejected = {
   isRejected: true,
   debug: {
     reason: string,
-    [string]: unknown,
-    ...
+    [string]: unknown
   },
 };
 
@@ -259,7 +258,7 @@ type ShadowRootData = {
   active: boolean,
 };
 
-type Deadline = { timeRemaining: () => number, ... };
+type Deadline = { timeRemaining: () => number };
 
 const infiniteDeadline: Deadline = {
   timeRemaining: () => Infinity,

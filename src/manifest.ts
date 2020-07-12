@@ -59,7 +59,7 @@ export default () =>
     ],
   });
 
-function toJSON(obj: { [string]: unknown, ... }): string {
+function toJSON(obj: { [string]: unknown }): string {
   return JSON.stringify(obj, undefined, 2);
 }
 

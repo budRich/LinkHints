@@ -279,7 +279,7 @@ export function hasChangedTweakable(): boolean {
   );
 }
 
-export function getTweakableExport(): { [string]: unknown, ... } {
+export function getTweakableExport(): { [string]: unknown } {
   return Object.fromEntries(
     ALL_TWEAKABLES.flatMap(([t, tMeta]) =>
       Object.keys(tMeta.defaults)
@@ -299,9 +299,8 @@ export function getTweakableExport(): { [string]: unknown, ... } {
 }
 
 export function partitionTweakable(data: {
-  +[string]: unknown,
-  ...
-}): [{ [string]: unknown, ... }, { [string]: unknown, ... }] {
+  +[string]: unknown
+}): [{ [string]: unknown }, { [string]: unknown }] {
   const tweakableData = {};
   const otherData = {};
 
@@ -316,7 +315,7 @@ export function partitionTweakable(data: {
   return [tweakableData, otherData];
 }
 
-export function saveTweakable(data: { [string]: unknown, ... }): Promise<void> {
+export function saveTweakable(data: { [string]: unknown }): Promise<void> {
   const [tweakableData] = partitionTweakable(data);
   return browser.storage.sync.set(tweakableData);
 }

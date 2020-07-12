@@ -1733,7 +1733,7 @@ function readAsJson(file: File): Promise<unknown> {
   return new Response(file).json();
 }
 
-function mixedObject(value: unknown): { +[string]: unknown, ... } {
+function mixedObject(value: unknown): { +[string]: unknown } {
   if (typeof value !== "object" || value == null || Array.isArray(value)) {
     throw new TypeError(`Expected an object, but got: ${repr(value)}`);
   }

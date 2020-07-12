@@ -298,7 +298,7 @@ export default class RendererProgram {
     }
   }
 
-  updateContainer(viewport: { +width: number, +height: number, ... }) {
+  updateContainer(viewport: { +width: number, +height: number }) {
     const container = this.container.element;
 
     setStyles(container, {
@@ -838,7 +838,7 @@ function getHintPosition({
   hintMeasurements: HintMeasurements,
   viewport: Box,
 }): {
-  styles: { [string]: string, ... },
+  styles: { [string]: string },
   maybeOutsideHorizontally: boolean,
 } {
   const width = Math.ceil(
