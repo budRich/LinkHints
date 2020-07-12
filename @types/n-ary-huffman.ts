@@ -1,5 +1,3 @@
-// @flow strict-local
-
 declare module "n-ary-huffman" {
   export class BranchPoint<T> {
     children: Array<T>;

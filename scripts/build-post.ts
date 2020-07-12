@@ -1,7 +1,7 @@
 import spawn from "cross-spawn";
 import crx3 from "crx3";
-import fs from "fs";
-import path from "path";
+import * as fs from "fs";
+import * as path from "path";
 import readdirp from "readdirp";
 import { ZipFile } from "yazl";
 

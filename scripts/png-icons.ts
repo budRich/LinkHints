@@ -18,7 +18,7 @@ function run() {
   }
 }
 
-function svgToPng(svgPath, pngPath) {
+function svgToPng(svgPath: string, pngPath: string) {
   spawn.sync("inkscape", ["-z", "-e", pngPath, svgPath], {
     stdio: "inherit",
   });
