@@ -717,7 +717,7 @@ function getTextEditingShortcuts(mac: boolean): Array<Shortcut> {
     cmd = false,
     ctrl = false,
     shift = false,
-  }: $Shape<Shortcut>): Shortcut {
+  }: Partial<Shortcut>): Shortcut {
     return { key, alt, cmd, ctrl, shift };
   }
 

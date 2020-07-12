@@ -48,7 +48,7 @@ export type Options = {
   hintsKeyboardShortcuts: Array<KeyboardMapping>;
 };
 
-export type PartialOptions = $Shape<Options>;
+export type PartialOptions = Partial<Options>;
 
 export type FlatOptions = { [Key: string]: unknown };
 
@@ -137,7 +137,7 @@ export function getDefaults({ mac }: { mac: boolean }): Options {
     cmd = false,
     ctrl = false,
     shift = false,
-  }: $Shape<Shortcut>): Shortcut {
+  }: Partial<Shortcut>): Shortcut {
     return { key, alt, cmd, ctrl, shift };
   }
 

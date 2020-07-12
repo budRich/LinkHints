@@ -9,7 +9,7 @@ export default function KeyboardShortcut({
   shortcut,
 }: {
   mac: boolean;
-  shortcut: $Shape<Shortcut>;
+  shortcut: Partial<Shortcut>;
 }) {
   const { key = "" } = shortcut;
   return (
