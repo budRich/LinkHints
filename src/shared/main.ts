@@ -437,12 +437,11 @@ export function getTextRects({
     [0, 0]
   );
 
-  return ranges.flatMap(({ range }) => {
-    const rects = range.getClientRects();
-    return Array.from(rects, (rect) => {
+  return ranges.flatMap(({ range }) =>
+    Array.from(range.getClientRects()).flatMap((rect) => {
       const box = getVisibleBox(rect, viewports);
       if (box == null) {
-        return undefined;
+        return [];
       }
       if (!checkElementAtPoint) {
         return box;
@@ -454,9 +453,9 @@ export function getTextRects({
       );
       return elementAtPoint != null && element.contains(elementAtPoint)
         ? box
-        : undefined;
-    }).filter(Boolean);
-  });
+        : [];
+    })
+  );
 }
 
 export function getElementFromPoint(

@@ -1596,16 +1596,14 @@ export default class OptionsProgram extends React.Component<Props, State> {
             : ["PartiallyUpdated", code, [key, "?"]];
         })
         .concat(
-          newCodes
-            .map((code) => {
-              const key = layoutMap.get(code);
-              return key == null
-                ? undefined
-                : isShiftable(key)
-                ? ["FullyUpdated", code, [key, key.toUpperCase()]]
-                : ["PartiallyUpdated", code, [key, "?"]];
-            })
-            .filter(Boolean)
+          newCodes.flatMap((code) => {
+            const key = layoutMap.get(code);
+            return key == null
+              ? []
+              : isShiftable(key)
+              ? [["FullyUpdated", code, [key, key.toUpperCase()]]]
+              : [["PartiallyUpdated", code, [key, "?"]]];
+          })
         );
 
       function count(updateStatus: UpdateStatus): number {

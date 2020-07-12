@@ -680,13 +680,11 @@ function getConflictingChars(
   charsString: string
 ): Array<string> {
   const chars = charsString.split("");
-  return shortcuts
-    .map((shortcut) =>
-      hasModifier(shortcut)
-        ? undefined
-        : chars.find((char) => char === shortcut.key)
-    )
-    .filter(Boolean);
+  return shortcuts.flatMap((shortcut) =>
+    hasModifier(shortcut)
+      ? []
+      : chars.find((char) => char === shortcut.key) || []
+  );
 }
 
 export function getConflictingKeyboardActions(

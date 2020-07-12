@@ -2341,9 +2341,17 @@ type IconType = "normal" | "disabled";
 
 function getIcons(type: IconType): { [key: string]: string } {
   const manifest = browser.runtime.getManifest();
+
+  if (
+    manifest.browser_action === undefined ||
+    manifest.browser_action.default_icon === undefined
+  ) {
+    return {};
+  }
+
   return Object.fromEntries(
-    Object.entries(manifest.browser_action.default_icon)
-      .map(([key, value]) => {
+    Object.entries(manifest.browser_action.default_icon).flatMap(
+      ([key, value]) => {
         if (typeof value === "string") {
           const newValue = value.replace(/(\$)\w+/, `$1${type}`);
           // Default icons are always PNG in development to support Chrome. Switch
@@ -2354,11 +2362,11 @@ function getIcons(type: IconType): { [key: string]: string } {
             !PROD && BROWSER === "firefox"
               ? `${newValue.replace(/png/g, "svg")}?${iconsChecksum}`
               : newValue;
-          return [key, finalValue];
+          return [[key, finalValue]];
         }
-        return undefined;
-      })
-      .filter(Boolean)
+        return [];
+      }
+    )
   );
 }
 

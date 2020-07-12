@@ -441,13 +441,11 @@ export function importOptions(
   errors: Array<string>;
 } {
   try {
-    const keyErrors = Object.keys(unflattenOptions(flatOptions))
-      .map((key) =>
-        ({}.hasOwnProperty.call(defaults, key)
-          ? undefined
-          : `Unknown key: ${repr(key)}`)
-      )
-      .filter(Boolean);
+    const keyErrors = Object.keys(
+      unflattenOptions(flatOptions)
+    ).flatMap((key) =>
+      ({}.hasOwnProperty.call(defaults, key) ? [] : `Unknown key: ${repr(key)}`)
+    );
     const updatedOptionsFlat = {
       ...flattenOptions(options),
       ...flatOptions,

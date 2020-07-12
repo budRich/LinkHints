@@ -690,24 +690,26 @@ export default class WorkerProgram {
   ) {
     const time = new TimeTracker();
 
-    const [elementsWithNulls, timeLeft]: [
+    const [elementsWithUndefined, timeLeft]: [
       Array<VisibleElement | undefined>,
       number
     ] = this.elementManager.getVisibleElements(types, viewports, time);
-    const elements = elementsWithNulls.filter(
-      (elementData) => elementData != null
+    const elements = elementsWithUndefined.flatMap(
+      (elementData) => elementData || []
     );
 
     time.start("frames");
     const frames = this.elementManager.getVisibleFrames(viewports);
     for (const frame of frames) {
-      const message: FrameMessage = {
-        type: "FindElements",
-        token: oneTimeWindowMessageToken,
-        types,
-        viewports: viewports.concat(getFrameViewport(frame)),
-      };
-      frame.contentWindow.postMessage(message, "*");
+      if (frame.contentWindow) {
+        const message: FrameMessage = {
+          type: "FindElements",
+          token: oneTimeWindowMessageToken,
+          types,
+          viewports: viewports.concat(getFrameViewport(frame)),
+        };
+        frame.contentWindow.postMessage(message, "*");
+      }
     }
 
     time.start("element reports");
@@ -725,7 +727,7 @@ export default class WorkerProgram {
     });
 
     this.current = {
-      elements: elements.filter(Boolean),
+      elements,
       frames,
       viewports,
       types,
@@ -775,14 +777,15 @@ export default class WorkerProgram {
         ? []
         : elements
             .filter((_elementData, index) => current.indexes.includes(index))
-            .filter(Boolean)
-            .flatMap(({ element, type }) =>
-              getTextRectsHelper({
-                element,
-                type,
-                viewports: current.viewports,
-                words: wordsSet,
-              })
+            .flatMap((item) =>
+              item !== undefined
+                ? getTextRectsHelper({
+                    element: item.element,
+                    type: item.type,
+                    viewports: current.viewports,
+                    words: wordsSet,
+                  })
+                : []
             );
 
     const elementReports = makeElementReports(elements, {
@@ -1173,16 +1176,14 @@ function makeElementReports(
 ): Array<ElementReport> {
   const startTime = Date.now();
 
-  const elementReports = elements
-    .map((elementData, index) =>
-      elementData != null
-        ? visibleElementToElementReport(elementData, {
-            index,
-            textContent: Date.now() - startTime > maxDuration,
-          })
-        : undefined
-    )
-    .filter(Boolean);
+  const elementReports = elements.flatMap((elementData, index) =>
+    elementData != null
+      ? visibleElementToElementReport(elementData, {
+          index,
+          textContent: Date.now() - startTime > maxDuration,
+        })
+      : []
+  );
 
   const skipped = elementReports.filter((report) => report.textContent);
   if (skipped.length > 0) {

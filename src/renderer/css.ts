@@ -71,26 +71,25 @@ export function parseCSS(css: string): Array<Rule> {
 }
 
 function parseDeclarations(declarationsString: string): Array<Declaration> {
-  return declarationsString
-    .split(";")
-    .map((declString) => {
-      const match = declRegex.exec(declString);
+  return declarationsString.split(";").flatMap((declString) => {
+    const match = declRegex.exec(declString);
 
-      if (match == null) {
-        return undefined;
-      }
+    if (match == null) {
+      return [];
+    }
 
-      const [, property, value, important] = match;
-      return {
+    const [, property, value, important] = match;
+    return [
+      {
         property,
         value: value.trim(),
         important: important != null,
-      };
-    })
-    .filter(Boolean);
+      },
+    ];
+  });
 }
 
-export function applyStyles(element: HTMLElement, styles: Array<Rule>) {
+export function applyStyles(element: HTMLElement, styles: Array<Rule>): void {
   const [matching, notMatching] = partition(styles, (rule) =>
     element.matches(rule.selector)
   );

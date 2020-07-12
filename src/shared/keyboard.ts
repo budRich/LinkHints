@@ -119,10 +119,10 @@ const SHORTCUT_SEPARATOR = "-";
 
 export function serializeShortcut(shortcut: Shortcut): string {
   return [
-    shortcut.alt ? "alt" : undefined,
-    shortcut.cmd ? "cmd" : undefined,
-    shortcut.ctrl ? "ctrl" : undefined,
-    shortcut.shift ? "shift" : undefined,
+    shortcut.alt ? "alt" : "",
+    shortcut.cmd ? "cmd" : "",
+    shortcut.ctrl ? "ctrl" : "",
+    shortcut.shift ? "shift" : "",
     shortcut.key,
   ]
     .filter(Boolean)

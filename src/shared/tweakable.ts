@@ -207,17 +207,15 @@ export function tweakable(
     (changes, areaName) => {
       if (areaName === "sync") {
         const data = Object.fromEntries(
-          Object.keys(changes)
-            .map((fullKey) => {
-              if (fullKey.startsWith(keyPrefix)) {
-                const key = fullKey.slice(keyPrefix.length);
-                if ({}.hasOwnProperty.call(defaults, key)) {
-                  return [key, changes[fullKey].newValue];
-                }
+          Object.keys(changes).flatMap((fullKey) => {
+            if (fullKey.startsWith(keyPrefix)) {
+              const key = fullKey.slice(keyPrefix.length);
+              if ({}.hasOwnProperty.call(defaults, key)) {
+                return [[key, changes[fullKey].newValue]];
               }
-              return undefined;
-            })
-            .filter(Boolean)
+            }
+            return [];
+          })
         );
         update(data);
       }

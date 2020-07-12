@@ -135,7 +135,7 @@ export const t = {
         // Firefox does not allow opening `file://` URLs in new tabs, but Chrome
         // does. Both allow _clicking_ them.
         // See: <https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/create>
-        BROWSER === "chrome" ? "file:" : undefined,
+        BROWSER === "chrome" ? "file:" : "",
       ].filter(Boolean)
     )
   ),
@@ -1289,13 +1289,13 @@ export default class ElementManager {
     // In theory this might need flushing, but in practice this method is always
     // called _after_ `getVisibleElements`, so everything should already be
     // flushed.
-    return Array.from(this.visibleFrames, (element) => {
+    return Array.from(this.visibleFrames).flatMap((element) => {
       if (
         // Needed on reddit.com. There's a Google Ads iframe where
         // `contentWindow` is null.
         element.contentWindow == null
       ) {
-        return undefined;
+        return [];
       }
 
       const box = getVisibleBox(element.getBoundingClientRect(), viewports);
@@ -1308,7 +1308,7 @@ export default class ElementManager {
         box.width < t.MIN_SIZE_FRAME.value ||
         box.height < t.MIN_SIZE_FRAME.value
       ) {
-        return undefined;
+        return [];
       }
 
       const elementsAtPoint = getElementsFromPoint(
@@ -1322,11 +1322,11 @@ export default class ElementManager {
       // covered at different spots, but we can’t know if those spots cover
       // links or not.
       if (!elementsAtPoint.includes(element)) {
-        return undefined;
+        return [];
       }
 
       return element;
-    }).filter(Boolean);
+    });
   }
 
   getElementType(element: HTMLElement): ElementType | undefined {
@@ -1627,14 +1627,15 @@ function getMeasurements(
   );
 
   time.start("measurements:visibleBoxes");
-  const visibleBoxes = Array.from(rects, (rect) =>
-    getVisibleBox(rect, viewports)
-  )
-    .filter(Boolean)
+  const visibleBoxes = Array.from(rects).flatMap((rect) => {
+    const box = getVisibleBox(rect, viewports);
     // Remove `offsetX` and `offsetY` to turn `x` and `y` back to the coordinate
     // system of the current frame. This is so we can easily make comparisons
     // with other rects of the frame.
-    .map((box) => ({ ...box, x: box.x - offsetX, y: box.y - offsetY }));
+    return box !== undefined
+      ? { ...box, x: box.x - offsetX, y: box.y - offsetY }
+      : [];
+  });
 
   time.start("measurements:noVisibleBoxes");
   if (visibleBoxes.length === 0) {

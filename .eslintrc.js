@@ -25,6 +25,7 @@ module.exports = {
     node: true,
   },
   rules: {
+    "@typescript-eslint/no-floating-promises": "off",
     "import/no-restricted-paths": [
       "error",
       {

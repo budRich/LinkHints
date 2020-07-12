@@ -35,7 +35,7 @@ export default () =>
     },
     background: {
       scripts: [
-        config.needsPolyfill ? config.polyfill.output : undefined,
+        config.needsPolyfill ? config.polyfill.output : "",
         config.background.output,
       ].filter(Boolean),
     },
@@ -46,7 +46,7 @@ export default () =>
         match_about_blank: true,
         run_at: "document_start",
         js: [
-          config.needsPolyfill ? config.polyfill.output : undefined,
+          config.needsPolyfill ? config.polyfill.output : "",
           config.worker.output,
         ].filter(Boolean),
       },
