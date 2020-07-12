@@ -30,7 +30,7 @@ const mainIcon = "icons/main.svg";
 
 const currentBrowser = getBrowser();
 
-module.exports = {
+export default {
   meta: {
     version: VERSION,
     name: "Link Hints",

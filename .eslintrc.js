@@ -6,7 +6,6 @@ module.exports = {
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "prettier",
     "prettier/@typescript-eslint",
-    // TODO: React
   ],
   plugins: ["simple-import-sort"],
   parserOptions: {
@@ -14,6 +13,7 @@ module.exports = {
   },
   root: true,
   plugins: [
+    // TODO: enable what’s needed from these
     "@typescript-eslint",
     "import",
     "react",
@@ -105,7 +105,7 @@ module.exports = {
       },
       // globals: baseRules.browserEnv(),
       rules: {
-        "flowtype/require-parameter-type": "off",
+        // "flowtype/require-parameter-type": "off",
       },
     },
   ],

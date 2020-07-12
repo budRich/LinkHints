@@ -51,7 +51,6 @@ async function makeSourceCodeBundle() {
   const files = [
     ".eslintignore",
     ".eslintrc.js",
-    ".flowconfig",
     ".prettierignore",
     ".prettierrc.json",
     "LICENSE",
@@ -59,10 +58,11 @@ async function makeSourceCodeBundle() {
     "package.json",
     "project.config.js",
     "rollup.config.js",
+    "tsconfig.json",
     "web-ext-config.js",
   ].map((file) => path.join(BASE_DIR, file));
 
-  const dirs = ["docs", "flow-typed", "scripts", "src"];
+  const dirs = ["@types", "docs", "scripts", "src"];
 
   const asyncFiles = await Promise.all(
     dirs.map((dir) => getAllFilesInDir(dir))

@@ -24,10 +24,10 @@ If you’d like to make a pull request, here’s what you need to know.
 
 - [web-ext] for development, building and linting.
 - [Rollup] for `import`/`export` and npm package support.
-- [Flow] for type checking.
+- [TypeScript] for type checking.
 - [ESLint] for linting.
 - [Prettier] for automatic code formatting.
-- [Sucrase] for compiling Flow type annotation and JSX.
+- [Sucrase] for compiling TypeScript type annotation and JSX.
 - [Preact] for easily making the options UI and the website.
 - [WebExtension Polyfill] for using the `browser` API both in Chrome and Firefox.
 
@@ -38,7 +38,7 @@ If you’d like to make a pull request, here’s what you need to know.
 - `scripts/` contains a couple of build scripts.
 - `html/` contains lots of test pages for the extension.
 - `docs/` contains the source code for the website (<https://lydell.github.io/LinkHints/>).
-- `flow-typed/` contains [Flow library definitions].
+- `@types/` contains TypeScript library definitions when there’s no `@types/*` package on npm.
 
 These directories are generated and gitignored:
 
@@ -49,7 +49,7 @@ These directories are generated and gitignored:
 The most important files:
 
 - `project.config.js` contains information about the whole project, all in one place. Other config files and build scripts read from it. For example, it maps entrypoint files in `src/` to output files in `compiled/`.
-- `rollup.config.js` defines how `compiled/` is made. Rollup compiles and bundles JavaScript; generates `manifest.json`, HTML files and SVG icons; copies the [WebExtension Polyfill], CSS files, and PNG icons; and defines a couple of global variables (see also `flow-typed/globals.js`).
+- `rollup.config.js` defines how `compiled/` is made. Rollup compiles and bundles JavaScript; generates `manifest.json`, HTML files and SVG icons; copies the [WebExtension Polyfill], CSS files, and PNG icons; and defines a couple of global variables (see also `@types/globals.js`).
 - `web-ext-config.js` configures [web-ext], both for building and for running.
 - `custom.config.example.js` can be copied into `custom.config.js` to customize `web-ext run` as well as default options for development.
 - `src/manifest.js` is called via Rollup and generates `manifest.json`. In fact, all `.js` files directly inside `src/` are called via Rollup and generate other files.
@@ -86,9 +86,9 @@ When developing, you need to start a watcher (Rollup) that compiles the code as 
 npm run watch
 ```
 
-It is recommended to set up [Flow], [ESLint] and [Prettier] integrations in your editor. You can also run these tools from the command line:
+It is recommended to set up [TypeScript], [ESLint] and [Prettier] integrations in your editor. You can also run these tools from the command line:
 
-- `npm run flow`
+- `npm run tsc`
 - `npm run eslint`
 - `npm run prettier`
 
@@ -163,8 +163,6 @@ Note: If you regularly develop for Chrome, you might want to run `npm run build:
 [eslint]: https://eslint.org/
 [firefox developer edition]: https://www.mozilla.org/firefox/developer/
 [firefox nightly]: https://nightly.mozilla.org/
-[flow library definitions]: https://flow.org/en/docs/libdefs/creation/
-[flow]: https://flow.org/
 [inkscape]: https://inkscape.org/
 [node.js]: https://nodejs.org/
 [optipng]: http://optipng.sourceforge.net/
@@ -174,6 +172,7 @@ Note: If you regularly develop for Chrome, you might want to run `npm run build:
 [run-pty]: https://github.com/lydell/run-pty
 [sign]: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Getting_started_with_web-ext#Signing_your_extension_for_self-distribution
 [sucrase]: https://github.com/alangpierce/sucrase
+[typescript]: https://www.typescriptlang.org/
 [unbranded builds]: https://wiki.mozilla.org/Add-ons/Extension_Signing#Unbranded_Builds
 [web-ext]: https://github.com/mozilla/web-ext
 [webextension polyfill]: https://github.com/mozilla/webextension-polyfill
