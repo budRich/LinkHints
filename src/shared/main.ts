@@ -83,7 +83,7 @@ function getLogMethod(level: LogLevel): AnyFunction {
 }
 /* eslint-enable no-console */
 
-type Method = (...args: Array<any>) => void | Promise<void>;
+type Method = (...args: Array<unknown>) => void | Promise<void>;
 
 /*
 Binds class methods to the instance, so you can do `foo(this.method)` instead
@@ -103,9 +103,9 @@ Example:
     }
 */
 export function bind(
-  object: { [key: string]: unknown },
+  object: unknown,
   methods: Array<Method | [Method, { log?: boolean; catch?: boolean }]>
-) {
+): void {
   for (const item of methods) {
     const [method, options] = Array.isArray(item) ? item : [item, {}];
     const { log: shouldLog = false, catch: shouldCatch = false } = options;
@@ -115,7 +115,7 @@ export function bind(
       enumerable: false,
       configurable: true,
       value: Object.defineProperty(
-        (...args: Array<any>) => {
+        (...args: Array<unknown>) => {
           const prefix = `${object.constructor.name}#${method.name}`;
           if (shouldLog) {
             log("log", prefix, ...args);
@@ -144,20 +144,11 @@ export function bind(
   }
 }
 
-export function unreachable(value: empty, ...args: Array<unknown>) {
-  const message = `Unreachable: ${value}\n${JSON.stringify(
-    args,
-    undefined,
-    2
-  )}`;
-  throw new Error(message);
-}
-
 export function addEventListener(
   target: EventTarget,
   eventName: string,
   listener: AnyFunction,
-  options: { capture?: boolean; passive?: boolean } = { ...undefined }
+  options: { capture?: boolean; passive?: boolean } = {}
 ): () => void {
   const fullOptions = { capture: true, passive: true, ...options };
   target.addEventListener(eventName, listener, fullOptions);
@@ -168,8 +159,8 @@ export function addEventListener(
 
 export function addListener<Listener, Options>(
   target: {
-    addListener: (Listener, options?: Options) => void;
-    removeListener: (Listener) => void;
+    addListener: (listener: Listener, options?: Options) => void;
+    removeListener: (listener: Listener) => void;
   },
   listener: Listener,
   options?: Options
@@ -214,8 +205,8 @@ export function partition<T>(
   array: Array<T>,
   fn: (item: T, index: number, array: Array<T>) => boolean
 ): [Array<T>, Array<T>] {
-  const left = [];
-  const right = [];
+  const left: Array<T> = [];
+  const right: Array<T> = [];
 
   array.forEach((item, index) => {
     if (fn(item, index, array)) {
@@ -251,26 +242,31 @@ export function getVisibleBox(
   // No shortcuts (such as summing up viewport x:s and y:s) can be taken here,
   // since each viewport (frame) clips the visible area. We have to loop them
   // all through.
-  const visibleRect = viewports.reduceRight(
+  const visibleBox = viewports.reduceRight(
     (rect, viewport) => ({
       left: viewport.x + Math.max(rect.left, 0),
       right: viewport.x + Math.min(rect.right, viewport.width),
       top: viewport.y + Math.max(rect.top, 0),
       bottom: viewport.y + Math.min(rect.bottom, viewport.height),
     }),
-    passedRect
+    {
+      left: passedRect.left,
+      right: passedRect.right,
+      top: passedRect.top,
+      bottom: passedRect.bottom,
+    }
   );
 
-  const width = visibleRect.right - visibleRect.left;
-  const height = visibleRect.bottom - visibleRect.top;
+  const width = visibleBox.right - visibleBox.left;
+  const height = visibleBox.bottom - visibleBox.top;
 
   // If `visibleRect` has a nonsensical width or height it means it is not
   // visible within `viewports`.
   return width <= 0 || height <= 0
     ? undefined
     : {
-        x: visibleRect.left,
-        y: visibleRect.top,
+        x: visibleBox.left,
+        y: visibleBox.top,
         width,
         height,
       };
