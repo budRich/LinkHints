@@ -1,4 +1,5 @@
-import huffman from "n-ary-huffman";
+// TODO: Will this import work?
+import * as huffman from "n-ary-huffman";
 
 import iconsChecksum from "../icons/checksum";
 import {
