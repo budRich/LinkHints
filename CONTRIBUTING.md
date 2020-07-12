@@ -48,19 +48,19 @@ These directories are generated and gitignored:
 
 The most important files:
 
-- `project.config.js` contains information about the whole project, all in one place. Other config files and build scripts read from it. For example, it maps entrypoint files in `src/` to output files in `compiled/`.
-- `rollup.config.js` defines how `compiled/` is made. Rollup compiles and bundles JavaScript; generates `manifest.json`, HTML files and SVG icons; copies the [WebExtension Polyfill], CSS files, and PNG icons; and defines a couple of global variables (see also `@types/globals.js`).
+- `project.config.ts` contains information about the whole project, all in one place. Other config files and build scripts read from it. For example, it maps entrypoint files in `src/` to output files in `compiled/`.
+- `rollup.config.js` defines how `compiled/` is made. Rollup compiles and bundles JavaScript; generates `manifest.json`, HTML files and SVG icons; copies the [WebExtension Polyfill], CSS files, and PNG icons; and defines a couple of global variables (see also `@types/globals.d.ts`).
 - `web-ext-config.js` configures [web-ext], both for building and for running.
 - `custom.config.example.js` can be copied into `custom.config.js` to customize `web-ext run` as well as default options for development.
-- `src/manifest.js` is called via Rollup and generates `manifest.json`. In fact, all `.js` files directly inside `src/` are called via Rollup and generate other files.
-- `src/icons.js` generates all SVG icons (even outside `compiled/`). `src/icons/` contains PNG versions of those. They can be updated by running `npm run png-icons` (which requires [Inkscape] and [OptiPNG]). You can preview all icons by opening `compiled/icons/test.html` in a browser.
-- `src/html.js` generates HTML files. All HTML files are very minimal. JavaScript is used to render content.
-- `src/css.js` injects the colors defined in `project.config.js` into CSS files.
+- `src/manifest.ts` is called via Rollup and generates `manifest.json`. In fact, all `.js` files directly inside `src/` are called via Rollup and generate other files.
+- `src/icons.ts` generates all SVG icons (even outside `compiled/`). `src/icons/` contains PNG versions of those. They can be updated by running `npm run png-icons` (which requires [Inkscape] and [OptiPNG]). You can preview all icons by opening `compiled/icons/test.html` in a browser.
+- `src/html.ts` generates HTML files. All HTML files are very minimal. JavaScript is used to render content.
+- `src/css.ts` injects the colors defined in `project.config.ts` into CSS files.
 
 Compilation pipeline:
 
 ```
-       project.config.js                                     .--> dist-chrome/
+       project.config.ts                                     .--> dist-chrome/
        rollup.config.js                 web-ext-config.js   /
 src/ ---------------------> compiled/ ----------------------
                                                             \
@@ -76,7 +76,7 @@ Code structure:
 - `src/options/` renders the options UI.
 - `src/shared/` contains functions and types shared by all of the above.
 
-All of the above directories, except `src/shared/`, have a `Program.js` file with a `Program` class inside. The different “programs” talk to each by exchanging messages with `src/background/`. The messages are defined in `src/shared/messages.js`. The `Program.js` files are bootstrapped from the `main.js` files next to them, which are the main entrypoints.
+All of the above directories, except `src/shared/`, have a `Program.ts` file with a `Program` class inside. The different “programs” talk to each by exchanging messages with `src/background/`. The messages are defined in `src/shared/messages.ts`. The `Program.ts` files are bootstrapped from the `main.ts` files next to them, which are the main entrypoints.
 
 ## Development
 

@@ -207,7 +207,7 @@ function html(
   } */
 ) {
   return template({
-    input: "html.js",
+    input: "html.ts",
     output: files.html,
     data: {
       title: files.title,

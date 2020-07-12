@@ -12,7 +12,7 @@ import { makeRandomToken } from "../shared/main";
 // this file so that ESLint and Flow know about them.
 
 // NOTE: If you add a new constant, you have to update the `constants` object in
-// ElementManager.js as well!
+// ElementManager.ts as well!
 
 // To make things even more complicated, in Firefox the `export default`
 // function is actually executed rather than inserted as an inline script. This
@@ -317,7 +317,7 @@ export default (communicator?: {
     options: unknown,
   };
 
-  // Elements waiting to be sent to ElementManager.js (in Chrome only).
+  // Elements waiting to be sent to ElementManager.ts (in Chrome only).
   type SendQueueItem = {
     added: boolean,
     element: HTMLElement,
@@ -896,7 +896,7 @@ export default (communicator?: {
 
   function onReset() {
     if (!PROD) {
-      consoleLog(`[${META_SLUG}] Resetting injected.js`, RESET_EVENT);
+      consoleLog(`[${META_SLUG}] Resetting injected.ts`, RESET_EVENT);
     }
 
     // ElementManager removes listeners itself on reset.

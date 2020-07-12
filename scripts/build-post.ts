@@ -56,7 +56,7 @@ async function makeSourceCodeBundle() {
     "LICENSE",
     "package-lock.json",
     "package.json",
-    "project.config.js",
+    "project.config.ts",
     "rollup.config.js",
     "tsconfig.json",
     "web-ext-config.js",
