@@ -4,7 +4,7 @@ type IconsList = Array<[number, string]>;
 type Icons = { svg: IconsList; png: IconsList };
 type IconSizes = { [size: string]: string };
 
-export default () =>
+export default (): unknown =>
   toJSON({
     manifest_version: 2,
     version: config.meta.version,
