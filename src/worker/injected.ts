@@ -330,7 +330,7 @@ export default (communicator?: {
     clickListenersByElement: ClickListenersByElement = new Map();
     queue: Queue<QueueItem> = makeEmptyQueue();
     sendQueue: Queue<SendQueueItem> = makeEmptyQueue();
-    idleCallbackId: ?IdleCallbackID = undefined;
+    idleCallbackId: IdleCallbackID | undefined = undefined;
 
     reset() {
       if (this.idleCallbackId != null) {

@@ -107,7 +107,7 @@ function TweakableField<T extends TweakableValue>({
   value: T;
   defaultValue: T;
   changed: boolean;
-  error: ?string;
+  error: string | undefined;
 }) {
   const fullKey = `${DEBUG_PREFIX}${namespace}.${name}`;
 

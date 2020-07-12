@@ -1,8 +1,7 @@
-
 import config from "../project.config";
 
 type IconsList = Array<[number, string]>;
-type Icons = { svg: IconsList, png: IconsList };
+type Icons = { svg: IconsList; png: IconsList };
 type IconSizes = { [size: string]: string };
 
 export default () =>
@@ -59,21 +58,24 @@ export default () =>
     ],
   });
 
-function toJSON(obj: { [string]: unknown }): string {
+function toJSON(obj: { [key: string]: unknown }): string {
   return JSON.stringify(obj, undefined, 2);
 }
 
-function getBrowserSpecificSettings(browser: ?Browser): unknown {
+function getBrowserSpecificSettings(browser: Browser | undefined): unknown {
   switch (browser) {
     case "chrome":
       return undefined;
 
-    default:
+    case "firefox":
       return {
         gecko: {
           id: config.meta.geckoId,
         },
       };
+
+    case undefined:
+      return undefined;
   }
 }
 
@@ -83,12 +85,15 @@ function makeSizes(icons: Array<[number, string]>): IconSizes {
   );
 }
 
-function getIcons(icons: Icons, browser: ?Browser): ?IconSizes {
+function getIcons(icons: Icons, browser: Browser | undefined): IconSizes {
   switch (browser) {
     case "firefox":
       return makeSizes(icons.svg);
 
-    default:
+    case "chrome":
+      return makeSizes(icons.png);
+
+    case undefined:
       return makeSizes(icons.png);
   }
 }

@@ -8,7 +8,7 @@ export default ({
   css,
 }: {
   title: string;
-  polyfill: ?string;
+  polyfill: string | undefined;
   js: Array<string>;
   css: Array<string>;
 }) => {

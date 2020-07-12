@@ -43,13 +43,13 @@ export type TweakableValue =
   | ElementTypeSet
   | SelectorString;
 
-export type TweakableMapping = { [string]: TweakableValue };
+export type TweakableMapping = { [key: string]: TweakableValue };
 
 export type TweakableMeta = {
   namespace: string;
   defaults: TweakableMapping;
-  changed: { [string]: boolean };
-  errors: { [string]: ?string };
+  changed: { [key: string]: boolean };
+  errors: { [key: string]: string | undefined };
   loaded: Promise<void>;
   unlisten: () => void;
 };

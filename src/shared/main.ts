@@ -247,7 +247,7 @@ export type Box = {
 export function getVisibleBox(
   passedRect: ClientRect,
   viewports: Array<Box>
-): ?Box {
+): Box | undefined {
   // No shortcuts (such as summing up viewport x:s and y:s) can be taken here,
   // since each viewport (frame) clips the visible area. We have to loop them
   // all through.
@@ -464,7 +464,7 @@ export function getElementFromPoint(
   element: HTMLElement,
   x: number,
   y: number
-): ?HTMLElement {
+): HTMLElement | undefined {
   const root = element.getRootNode();
   const doc =
     root instanceof Document || root instanceof ShadowRoot ? root : document;
@@ -484,7 +484,7 @@ export function getElementsFromPoint(
   return doc.elementsFromPoint(x, y);
 }
 
-export function getLabels(element: HTMLElement): ?NodeList<HTMLLabelElement> {
+export function getLabels(element: HTMLElement): NodeList | undefined {
   // $FlowIgnore: Only some types of elements have `.labels`, and I'm not going to `instanceof` check them all.
   return element.labels instanceof NodeList ? element.labels : undefined;
 }

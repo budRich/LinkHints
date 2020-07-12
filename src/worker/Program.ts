@@ -64,10 +64,10 @@ export default class WorkerProgram {
   keyboardShortcuts: Array<KeyboardMapping> = [];
   keyboardMode: KeyboardModeWorker = "Normal";
   keyTranslations: KeyTranslations = {};
-  current: ?CurrentElements = undefined;
-  oneTimeWindowMessageToken: ?string = undefined;
+  current: CurrentElements | undefined = undefined;
+  oneTimeWindowMessageToken: string | undefined = undefined;
   mac = false;
-  suppressNextKeyup: ?{ key: string; code: string } = undefined;
+  suppressNextKeyup: { key: string; code: string } | undefined = undefined;
   resets: Resets = new Resets();
   elementManager: ElementManager = new ElementManager({
     onMutation: this.onMutation.bind(this),
@@ -679,7 +679,7 @@ export default class WorkerProgram {
     return Array.from(elements);
   }
 
-  getElement(index: number): ?VisibleElement {
+  getElement(index: number): VisibleElement | undefined {
     return this.current == null ? undefined : this.current.elements[index];
   }
 
@@ -691,7 +691,7 @@ export default class WorkerProgram {
     const time = new TimeTracker();
 
     const [elementsWithNulls, timeLeft]: [
-      Array<?VisibleElement>,
+      Array<VisibleElement | undefined>,
       number
     ] = this.elementManager.getVisibleElements(types, viewports, time);
     const elements = elementsWithNulls.filter(
@@ -739,10 +739,10 @@ export default class WorkerProgram {
     oneTimeWindowMessageToken,
   }: {
     current: CurrentElements;
-    oneTimeWindowMessageToken: ?string;
+    oneTimeWindowMessageToken: string | undefined;
   }) {
     const [elements, timeLeft]: [
-      Array<?VisibleElement>,
+      Array<VisibleElement | undefined>,
       number
     ] = this.elementManager.getVisibleElements(
       current.types,
@@ -1075,7 +1075,7 @@ function reverseSelection(selection: Selection) {
 }
 
 // true → forward, false → backward, undefined → unknown
-function getSelectionDirection(selection: Selection): ?boolean {
+function getSelectionDirection(selection: Selection): boolean | undefined {
   if (selection.isCollapsed) {
     return undefined;
   }
@@ -1168,7 +1168,7 @@ function suppressEvent(event: Event) {
 }
 
 function makeElementReports(
-  elements: Array<?VisibleElement>,
+  elements: Array<VisibleElement | undefined>,
   { maxDuration, prefix }: { maxDuration: number; prefix: string }
 ): Array<ElementReport> {
   const startTime = Date.now();
@@ -1352,7 +1352,7 @@ function firefoxPopupBlockerWorkaround({
   element: HTMLElement;
   isPinned: boolean;
 }): () => {
-  pagePreventedDefault: ?boolean;
+  pagePreventedDefault: boolean | undefined;
   urlsToOpenInNewTabs: Array<string>;
 } {
   const prefix = "firefoxPopupBlockerWorkaround";

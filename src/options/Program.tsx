@@ -87,7 +87,7 @@ const CSS_SUGGESTIONS = [
   { name: "Vimium", value: SUGGESTION_VIMIUM },
 ];
 
-const getLayoutMap: ?(() => Promise<Map<string, string>>) =
+const getLayoutMap: (() => Promise<Map<string, string>>) | undefined =
   // $FlowIgnore: Flow doesn’t know about `navigator.keyboard` yet.
   navigator.keyboard != null &&
   typeof navigator.keyboard.getLayoutMap === "function"
@@ -98,15 +98,15 @@ const getLayoutMap: ?(() => Promise<Map<string, string>>) =
 type Props = {};
 
 type State = {
-  options: ?OptionsData;
+  options: OptionsData | undefined;
   hasSaved: boolean;
   customChars: string;
   keyTranslationsInput: {
     text: string;
     testOnly: boolean;
-    lastKeypress: ?Keypress;
+    lastKeypress: Keypress | undefined;
   };
-  keyboardDetect: ?(
+  keyboardDetect:
     | Error
     | {
         numReceived: number;
@@ -116,29 +116,31 @@ type State = {
         numAlreadyPartiallyUpdated: number;
         numNotUpdated: number;
       }
-  );
-  capturedKeypressWithTimestamp: ?{
-    timestamp: number;
-    keypress: NormalizedKeypress;
-  };
+    | undefined;
+  capturedKeypressWithTimestamp:
+    | {
+        timestamp: number;
+        keypress: NormalizedKeypress;
+      }
+    | undefined;
   peek: boolean;
   cssSuggestion: string;
   importData: {
-    successCount: ?number;
-    tweakableCount: ?number;
+    successCount: number | undefined;
+    tweakableCount: number | undefined;
     errors: Array<string>;
   };
   perf: TabsPerf;
   expandedPerfTabIds: Array<string>;
   expandedPerf: boolean;
   expandedDebug: boolean;
-  localStorageCleared: ?Date;
+  localStorageCleared: Date | undefined;
 };
 
 export default class OptionsProgram extends React.Component<Props, State> {
   resets: Resets = new Resets();
   hiddenErrors: Array<string> = [];
-  keysTableRef: { current: HTMLDivElement | null } = React.createRef();
+  keysTableRef = React.createRef<{ current: HTMLDivElement | null }>();
   hasRestoredPosition = false;
 
   state = {
@@ -1643,7 +1645,7 @@ function wrapMessage(message: FromOptions): ToBackground {
 function updateKeyTranslations(
   { code, key, shift }: { code: string; key: string; shift: boolean },
   keyTranslations: KeyTranslations
-): ?KeyTranslations {
+): KeyTranslations | undefined {
   const previousPair = {}.hasOwnProperty.call(keyTranslations, code)
     ? keyTranslations[code]
     : undefined;
@@ -1655,7 +1657,7 @@ function updateKeyTranslations(
 
 function updatePair(
   { key, shift }: { key: string; shift: boolean },
-  previousPair: ?KeyPair
+  previousPair: KeyPair | undefined
 ): KeyPair {
   if (!shift && key.length === 1 && key.toLowerCase() !== key.toUpperCase()) {
     return [key, key.toUpperCase()];

@@ -69,14 +69,14 @@ export type Keypress = {
 // A `Keypress` after taking `KeyTranslations` into account.
 export type NormalizedKeypress = {
   key: string;
-  printableKey: ?string;
+  printableKey: string | undefined;
   alt: boolean;
   cmd: boolean;
   ctrl: boolean;
   // If missing it means that the shift key doesn’t matter. For example, it
   // doesn’t matter if you need to press shift to type a `/` or not (which
   // differs between keyboard layouts).
-  shift: ?boolean;
+  shift: boolean | undefined;
 };
 
 export type Shortcut = {
@@ -132,7 +132,7 @@ export function serializeShortcut(shortcut: Shortcut): string {
 // This turns a shortcut string into an object that can be fed to `decodeShortcut`.
 export function deserializeShortcut(
   shortcutString: string
-): { [string]: unknown } {
+): { [key: string]: unknown } {
   const parts = shortcutString.split(SHORTCUT_SEPARATOR);
   const lastIndex = parts.length - 1;
   return parts.reduce(
@@ -342,12 +342,11 @@ function translateCode({
   code: string;
   shift: boolean;
   keyTranslations: KeyTranslations;
-}): ?string {
+}): string | undefined {
   if ({}.hasOwnProperty.call(keyTranslations, code)) {
     const [unshifted, shifted] = keyTranslations[code];
     return shift ? shifted : unshifted;
   }
-
   return undefined;
 }
 

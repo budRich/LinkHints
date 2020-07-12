@@ -9,7 +9,7 @@ import React from "./static-react";
 const CONTAINER_ID = "container";
 
 export default class PopupProgram {
-  debugInfo: string = "Debug info was never loaded.";
+  debugInfo = "Debug info was never loaded.";
   resets: Resets = new Resets();
 
   constructor() {
@@ -79,7 +79,7 @@ export default class PopupProgram {
 
     const errorElement = <p className="Error" />;
 
-    function showError(error: ?Error) {
+    function showError(error: Error | undefined) {
       errorElement.textContent =
         error != null ? error.message : "An unknown error ocurred.";
     }

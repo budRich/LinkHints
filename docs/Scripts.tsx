@@ -49,7 +49,10 @@ function stateFromToken(token: Token): State {
 
 function minifyJS(js: string): string {
   return Array.from(jsTokens(js)).reduce(
-    ([state, previousToken, result]: [State, ?Token, string], token) => {
+    (
+      [state, previousToken, result]: [State, Token | undefined, string],
+      token
+    ) => {
       const tokenState = stateFromToken(token);
       return state.ignored
         ? tokenState.ignored

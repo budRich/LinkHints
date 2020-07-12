@@ -1,8 +1,7 @@
-
 import {
-  Decoder,
   array,
   boolean,
+  Decoder,
   dict,
   fields,
   map,
@@ -11,42 +10,42 @@ import {
 } from "tiny-decoders";
 
 import {
-  KeyboardMapping,
-  KeyTranslations,
-  Shortcut,
   decodeKeyboardMapping,
   decodeKeyboardMappingWithModifiers,
   decodeKeyPair,
   deserializeShortcut,
   EN_US_QWERTY_TRANSLATIONS,
+  KeyboardMapping,
+  KeyTranslations,
   serializeShortcut,
+  Shortcut,
 } from "./keyboard";
 import {
-  LogLevel,
   decodeLogLevel,
   decodeUnsignedInt,
   deepEqual,
   DEFAULT_LOG_LEVEL,
+  LogLevel,
 } from "./main";
 
 export type OptionsData = {
-  values: Options,
-  defaults: Options,
-  raw: FlatOptions,
-  errors: Array<string>,
-  mac: boolean,
+  values: Options;
+  defaults: Options;
+  raw: FlatOptions;
+  errors: Array<string>;
+  mac: boolean;
 };
 
 export type Options = {
-  chars: string,
-  autoActivate: boolean,
-  overTypingDuration: number,
-  css: string,
-  logLevel: LogLevel,
-  useKeyTranslations: boolean,
-  keyTranslations: KeyTranslations,
-  normalKeyboardShortcuts: Array<KeyboardMapping>,
-  hintsKeyboardShortcuts: Array<KeyboardMapping>,
+  chars: string;
+  autoActivate: boolean;
+  overTypingDuration: number;
+  css: string;
+  logLevel: LogLevel;
+  useKeyTranslations: boolean;
+  keyTranslations: KeyTranslations;
+  normalKeyboardShortcuts: Array<KeyboardMapping>;
+  hintsKeyboardShortcuts: Array<KeyboardMapping>;
 };
 
 export type PartialOptions = $Shape<Options>;
@@ -378,7 +377,7 @@ export function diffOptions(
   defaults: FlatOptions,
   fullOptions: FlatOptions,
   saved: FlatOptions
-): { keysToRemove: Array<string>, optionsToSet: FlatOptions } {
+): { keysToRemove: Array<string>; optionsToSet: FlatOptions } {
   const keysToRemove = [];
   const optionsToSet = {};
 
@@ -437,9 +436,9 @@ export function importOptions(
   options: Options,
   defaults: Options
 ): {
-  options: ?Options,
-  successCount: number,
-  errors: Array<string>,
+  options: Options | undefined;
+  successCount: number;
+  errors: Array<string>;
 } {
   try {
     const keyErrors = Object.keys(unflattenOptions(flatOptions))

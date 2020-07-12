@@ -221,9 +221,9 @@ type Rejected = {
 };
 
 type Record = {
-  addedNodes: Array<Node> | NodeList<Node>;
-  removedNodes: Array<Node> | NodeList<Node>;
-  attributeName: ?string;
+  addedNodes: Array<Node> | NodeList;
+  removedNodes: Array<Node> | NodeList;
+  attributeName: string | undefined;
   target: Node;
 };
 
@@ -235,7 +235,7 @@ type QueueItem =
       addedNodeIndex: number;
       removedNodeIndex: number;
       childIndex: number;
-      children: ?NodeList<HTMLElement>;
+      children: NodeList | undefined;
       removalsOnly: boolean;
     }
   | {
@@ -487,7 +487,7 @@ export default class ElementManager {
     }
   }
 
-  getActiveElement(node: Document | ShadowRoot): ?HTMLElement {
+  getActiveElement(node: Document | ShadowRoot): HTMLElement | undefined {
     // $FlowIgnore: Flow doesn’t know about `.activeElement` on `ShadowRoot` yet.
     const { activeElement } = node;
     if (activeElement == null) {
@@ -1117,7 +1117,7 @@ export default class ElementManager {
     viewports: Array<Box>,
     time: TimeTracker,
     passedCandidates?: Array<HTMLElement>
-  ): [Array<?VisibleElement>, number] {
+  ): [Array<VisibleElement | undefined>, number] {
     const startTime = Date.now();
 
     const isUpdate = passedCandidates != null;
@@ -1176,7 +1176,7 @@ export default class ElementManager {
           };
         }
 
-        const type: ?ElementType =
+        const type: ElementType | undefined =
           types === "selectable"
             ? this.getElementTypeSelectable(element)
             : this.elements.get(element);
@@ -1329,7 +1329,7 @@ export default class ElementManager {
     }).filter(Boolean);
   }
 
-  getElementType(element: HTMLElement): ?ElementType {
+  getElementType(element: HTMLElement): ElementType | undefined {
     if (isDisabled(element)) {
       return undefined;
     }
@@ -1426,7 +1426,7 @@ export default class ElementManager {
     }
   }
 
-  getElementTypeSelectable(element: HTMLElement): ?ElementType {
+  getElementTypeSelectable(element: HTMLElement): ElementType | undefined {
     // A shadow host element usually has 0 children, but it _can_ have children,
     // although they are never displayed. So it never makes sense to consider
     // shadow hosts selectable.
@@ -2106,10 +2106,10 @@ function getBestNonEmptyTextPoint({
   element: HTMLElement;
   elementRect: ClientRect;
   viewports: Array<Box>;
-  isAcceptable: (Point) => boolean;
+  isAcceptable: (point: Point) => boolean;
   preferTextStart: boolean;
   range: Range;
-}): ?Point {
+}): Point | undefined {
   const align = "right";
 
   // This goes through _all_ text nodes inside the element. That sounds

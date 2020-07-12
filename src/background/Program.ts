@@ -66,7 +66,7 @@ import { tweakable, unsignedInt } from "../shared/tweakable";
 type MessageInfo = {
   tabId: number;
   frameId: number;
-  url: ?string;
+  url: string | undefined;
 };
 
 type TabState = {
@@ -175,7 +175,7 @@ export const tMeta = tweakable("Background", t);
 
 export default class BackgroundProgram {
   options: OptionsData;
-  tabState: Map<number, TabState> = new Map();
+  tabState = new Map<number, TabState>();
   restoredTabsPerf: TabsPerf = {};
   oneTimeWindowMessageToken: string = makeRandomToken();
   resets: Resets = new Resets();
@@ -321,7 +321,10 @@ export default class BackgroundProgram {
       : browser.tabs.sendMessage(tabId, message, { frameId }));
   }
 
-  async onMessage(message: ToBackground, sender: MessageSender) {
+  async onMessage(
+    message: ToBackground,
+    sender: browser.runtime.MessageSender
+  ) {
     // `info` can be missing when the message comes from for example the popup
     // (which isn’t associated with a tab). The worker script can even load in
     // an `about:blank` frame somewhere when hovering the browserAction!
@@ -2167,7 +2170,7 @@ export default class BackgroundProgram {
   }
 }
 
-async function makeEmptyTabState(tabId: ?number): Promise<TabState> {
+async function makeEmptyTabState(tabId: number | undefined): Promise<TabState> {
   const tab = tabId != null ? await browser.tabs.get(tabId) : undefined;
   return {
     hintsState: {
@@ -2217,7 +2220,10 @@ function getElementTypes(mode: HintsMode): ElementTypes {
   }
 }
 
-function getCombiningUrl(mode: HintsMode, element: ElementWithHint): ?string {
+function getCombiningUrl(
+  mode: HintsMode,
+  element: ElementWithHint
+): string | undefined {
   switch (mode) {
     case "Click":
       return shouldCombineHintsForClick(element)
@@ -2240,9 +2246,6 @@ function getCombiningUrl(mode: HintsMode, element: ElementWithHint): ?string {
 
     case "Select":
       return undefined;
-
-    default:
-      return unreachable(mode);
   }
 }
 
@@ -2496,7 +2499,9 @@ function assignHints(
   return elements;
 }
 
-function makeMessageInfo(sender: MessageSender): ?MessageInfo {
+function makeMessageInfo(
+  sender: browser.runtime.MessageSender
+): MessageInfo | undefined {
   return sender.tab != null && sender.frameId != null
     ? { tabId: sender.tab.id, frameId: sender.frameId, url: sender.url }
     : undefined;
@@ -2508,12 +2513,12 @@ function updateChars(chars: string, input: HintInput): string {
       const key = input.keypress.printableKey;
       return key != null ? `${chars}${key}` : chars;
     }
+
     case "ActivateHint":
       return chars;
+
     case "Backspace":
       return chars.slice(0, -1);
-    default:
-      return unreachable(input.type, input);
   }
 }
 
