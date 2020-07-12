@@ -1,4 +1,3 @@
-
 import spawn from "cross-spawn";
 import crx3 from "crx3";
 import fs from "fs";
@@ -35,15 +34,14 @@ async function run() {
       console.log("Created source code bundle:", relative(SOURCE_CODE_FILE));
       break;
 
-    default:
-      (config.browser: null | void); // eslint-disable-line no-unused-expressions
+    case null:
       throw new Error(
         `Invalid BROWSER environment variable: ${String(process.env.BROWSER)}`
       );
   }
 }
 
-function relative(filePath): string {
+function relative(filePath: string): string {
   return path.relative(BASE_DIR, filePath);
 }
 

@@ -1,4 +1,3 @@
-
 import {
   CONTAINER_STYLES,
   CSS,
@@ -23,10 +22,10 @@ import type {
   HintUpdate,
 } from "../shared/hints";
 import {
-  Box,
   addEventListener,
   addListener,
   bind,
+  Box,
   CONTAINER_ID,
   getViewport,
   log,
@@ -42,12 +41,12 @@ import type {
 } from "../shared/messages";
 import { TimeTracker } from "../shared/perf";
 import { tweakable, unsignedInt } from "../shared/tweakable";
-import { Rule, applyStyles, parseCSS } from "./css";
+import { applyStyles, parseCSS, Rule } from "./css";
 
 type HintSize = {
-  widthBase: number,
-  widthPerLetter: number,
-  height: number,
+  widthBase: number;
+  widthPerLetter: number;
+  height: number;
 };
 
 export const t = {
@@ -59,23 +58,23 @@ export const tMeta = tweakable("Renderer", t);
 export default class RendererProgram {
   hints: Array<HTMLElement> = [];
   rects: Map<HTMLElement, ClientRect> = new Map();
-  enteredText: string = "";
+  enteredText = "";
   resets: Resets = new Resets();
   shruggieElement: HTMLElement;
   statusElement: HTMLElement;
   statusText: Text;
   hintSize: HintSize;
   container: {
-    element: HTMLElement,
-    root: HTMLElement,
-    shadowRoot: ShadowRoot,
-    resets: Resets,
-    intersectionObserver: IntersectionObserver,
+    element: HTMLElement;
+    root: HTMLElement;
+    shadowRoot: ShadowRoot;
+    resets: Resets;
+    intersectionObserver: IntersectionObserver;
   };
 
   css: {
-    text: string,
-    parsed: ?Array<Rule>,
+    text: string;
+    parsed: Array<Rule> | undefined;
   } = {
     text: CSS,
     parsed: undefined,
@@ -298,7 +297,7 @@ export default class RendererProgram {
     }
   }
 
-  updateContainer(viewport: { +width: number, +height: number }) {
+  updateContainer(viewport: { width: number; height: number }) {
     const container = this.container.element;
 
     setStyles(container, {
@@ -833,13 +832,13 @@ function getHintPosition({
   hintMeasurements,
   viewport,
 }: {
-  hintSize: HintSize,
-  hint: string,
-  hintMeasurements: HintMeasurements,
-  viewport: Box,
+  hintSize: HintSize;
+  hint: string;
+  hintMeasurements: HintMeasurements;
+  viewport: Box;
 }): {
-  styles: { [string]: string },
-  maybeOutsideHorizontally: boolean,
+  styles: { [string]: string };
+  maybeOutsideHorizontally: boolean;
 } {
   const width = Math.ceil(
     hintSize.widthBase + hintSize.widthPerLetter * hint.length

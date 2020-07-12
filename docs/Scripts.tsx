@@ -1,14 +1,14 @@
-
-import jsTokens, { type Token } from "js-tokens";
+import type { Token } from "js-tokens";
+import jsTokens from "js-tokens";
 import * as React from "preact";
 
 import config from "../project.config";
 import scripts from "./scripts.es5";
 
 export default function Scripts(props: {
-  macifyKbd?: boolean,
-  observeQuickLinks?: boolean,
-  autoCloseDetails?: boolean,
+  macifyKbd?: boolean;
+  observeQuickLinks?: boolean;
+  autoCloseDetails?: boolean;
 }) {
   const items = Object.keys(scripts)
     .map((name) => {
@@ -28,7 +28,7 @@ export default function Scripts(props: {
   ) : null;
 }
 
-type State = { ignored: false } | { ignored: true, multiline: boolean };
+type State = { ignored: false } | { ignored: true; multiline: boolean };
 
 const NEWLINE = /[\r\n\u2028\u2029]/;
 

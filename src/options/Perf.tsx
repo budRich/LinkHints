@@ -1,12 +1,7 @@
 import * as React from "preact";
 
 import { classlist } from "../shared/main";
-import {
-  Durations,
-  Stats,
-  TabsPerf,
-  MAX_PERF_ENTRIES,
-} from "../shared/perf";
+import { Durations, MAX_PERF_ENTRIES, Stats, TabsPerf } from "../shared/perf";
 
 export default function Perf({
   perf,
@@ -14,10 +9,10 @@ export default function Perf({
   onExpandChange,
   onReset,
 }: {
-  perf: TabsPerf,
-  expandedPerfTabIds: Array<string>,
-  onExpandChange: (Array<string>) => void,
-  onReset: () => void,
+  perf: TabsPerf;
+  expandedPerfTabIds: Array<string>;
+  onExpandChange: (expandedPerfTabIds: Array<string>) => void;
+  onReset: () => void;
 }) {
   const keys = Object.keys(perf);
 
@@ -243,7 +238,7 @@ function sumDurations(allDurations: Array<Durations>): Durations {
 
 function durationsToRows(
   allDurations: Array<Durations>
-): Array<{ heading: string, values: Array<string> }> {
+): Array<{ heading: string; values: Array<string> }> {
   const labels = new Set(
     allDurations.flatMap((durations) => durations.map(([label]) => label))
   );
@@ -260,8 +255,8 @@ function durationsToRows(
 function statsToRows(
   allStats: Array<Array<Stats>>
 ): Array<{
-  title: string,
-  data: Array<{ heading: string, values: Array<string> }>,
+  title: string;
+  data: Array<{ heading: string; values: Array<string> }>;
 }> {
   const urls = new Set(
     allStats.flatMap((stats) => stats.map(({ url }) => url))

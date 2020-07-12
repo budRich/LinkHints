@@ -1,4 +1,3 @@
-
 import * as React from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
@@ -12,11 +11,11 @@ export default function ButtonWithPopup({
   className = "",
   ...restProps
 }: {
-  buttonContent: React.Node,
-  popupContent: ({ close: () => void }) => React.Node,
-  open?: boolean,
-  onChange?: (boolean) => void,
-  className?: string,
+  buttonContent: React.Node;
+  popupContent: (actions: { close: () => void }) => React.Node;
+  open?: boolean;
+  onChange?: (boolean) => void;
+  className?: string;
 }) {
   const onChangeRef = useRef();
   onChangeRef.current = onChange;

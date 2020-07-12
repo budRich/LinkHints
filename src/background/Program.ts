@@ -1,8 +1,8 @@
-
 import huffman from "n-ary-huffman";
 
 import iconsChecksum from "../icons/checksum";
 import {
+  elementKey,
   ElementRender,
   ElementReport,
   ElementTypes,
@@ -10,7 +10,6 @@ import {
   ExtendedElementReport,
   HintMeasurements,
   HintUpdate,
-  elementKey,
 } from "../shared/hints";
 import {
   HintsMode,
@@ -44,107 +43,107 @@ import type {
   ToWorker,
 } from "../shared/messages";
 import {
-  Options,
-  OptionsData,
-  PartialOptions,
   diffOptions,
   flattenOptions,
   getDefaults,
   getRawOptions,
   makeOptionsDecoder,
+  Options,
+  OptionsData,
+  PartialOptions,
   unflattenOptions,
 } from "../shared/options";
 import {
+  decodeTabsPerf,
+  MAX_PERF_ENTRIES,
   Perf,
   Stats,
   TabsPerf,
-  decodeTabsPerf,
-  MAX_PERF_ENTRIES,
   TimeTracker,
 } from "../shared/perf";
 import { tweakable, unsignedInt } from "../shared/tweakable";
 
 type MessageInfo = {
-  tabId: number,
-  frameId: number,
-  url: ?string,
+  tabId: number;
+  frameId: number;
+  url: ?string;
 };
 
 type TabState = {
-  hintsState: HintsState,
-  keyboardMode: KeyboardModeBackground,
-  perf: Perf,
-  isOptionsPage: boolean,
-  isPinned: boolean,
+  hintsState: HintsState;
+  keyboardMode: KeyboardModeBackground;
+  perf: Perf;
+  isOptionsPage: boolean;
+  isPinned: boolean;
 };
 
 type HintsState =
   | {
-      type: "Idle",
-      highlighted: Highlighted,
+      type: "Idle";
+      highlighted: Highlighted;
     }
   | {
-      type: "Collecting",
-      mode: HintsMode,
-      pendingElements: PendingElements,
-      startTime: number,
-      time: TimeTracker,
-      stats: Array<Stats>,
-      refreshing: boolean,
-      highlighted: Highlighted,
+      type: "Collecting";
+      mode: HintsMode;
+      pendingElements: PendingElements;
+      startTime: number;
+      time: TimeTracker;
+      stats: Array<Stats>;
+      refreshing: boolean;
+      highlighted: Highlighted;
     }
   | {
-      type: "Hinting",
-      mode: HintsMode,
-      startTime: number,
-      time: TimeTracker,
-      stats: Array<Stats>,
-      enteredChars: string,
-      enteredText: string,
-      elementsWithHints: Array<ElementWithHint>,
-      highlighted: Highlighted,
-      updateState: UpdateState,
-      peeking: boolean,
+      type: "Hinting";
+      mode: HintsMode;
+      startTime: number;
+      time: TimeTracker;
+      stats: Array<Stats>;
+      enteredChars: string;
+      enteredText: string;
+      elementsWithHints: Array<ElementWithHint>;
+      highlighted: Highlighted;
+      updateState: UpdateState;
+      peeking: boolean;
     };
 
 // All HintsState types store the highlighted hints (highlighted due to being
 // matched, not due to filtering by text), so that they can stay highlighted for
 // `t.MATCH_HIGHLIGHT_DURATION` ms.
 type Highlighted = Array<{
-  sinceTimestamp: number,
-  element: ElementWithHint,
+  sinceTimestamp: number;
+  element: ElementWithHint;
 }>;
 
 type PendingElements = {
   pendingFrames: {
-    answering: number,
-    collecting: number,
-    lastStartWaitTimestamp: number,
-  },
-  elements: Array<ExtendedElementReport>,
+    answering: number;
+    collecting: number;
+    lastStartWaitTimestamp: number;
+  };
+  elements: Array<ExtendedElementReport>;
 };
 
 type UpdateState =
   | {
-      type: "WaitingForTimeout",
-      lastUpdateStartTimestamp: number,
+      type: "WaitingForTimeout";
+      lastUpdateStartTimestamp: number;
     }
   | {
-      type: "WaitingForResponse",
-      lastUpdateStartTimestamp: number,
+      type: "WaitingForResponse";
+      lastUpdateStartTimestamp: number;
     };
 
 type HintInput =
   | {
-      type: "Input",
-      keypress: NormalizedKeypress,
+      type: "Input";
+      keypress: NormalizedKeypress;
     }
   | {
-      type: "ActivateHint",
-      alt: boolean,
+      type: "ActivateHint";
+      alt: boolean;
     }
   | {
-      type: "Backspace",
+      type: "Backspace";
     };
 
 // As far as I can tell, the top frameId is always 0. This is also mentioned here:
@@ -276,7 +275,7 @@ export default class BackgroundProgram {
 
   async sendWorkerMessage(
     message: ToWorker,
-    { tabId, frameId }: { tabId: number, frameId: number | "all_frames" }
+    { tabId, frameId }: { tabId: number; frameId: number | "all_frames" }
   ) {
     await this.sendContentMessage(
       { type: "ToWorker", message },
@@ -315,7 +314,7 @@ export default class BackgroundProgram {
 
   async sendContentMessage(
     message: FromBackground,
-    { tabId, frameId }: { tabId: number, frameId: number | "all_frames" }
+    { tabId, frameId }: { tabId: number; frameId: number | "all_frames" }
   ) {
     await (frameId === "all_frames"
       ? browser.tabs.sendMessage(tabId, message)
@@ -633,10 +632,10 @@ export default class BackgroundProgram {
     words,
     tabId,
   }: {
-    enteredChars: string,
-    allElementsWithHints: Array<ElementWithHint>,
-    words: Array<string>,
-    tabId: number,
+    enteredChars: string;
+    allElementsWithHints: Array<ElementWithHint>;
+    words: Array<string>;
+    tabId: number;
   }) {
     const indexesByFrame: Map<number, Array<number>> = new Map();
     for (const { text, hint, frame } of allElementsWithHints) {
@@ -817,12 +816,12 @@ export default class BackgroundProgram {
     alt,
     timestamp,
   }: {
-    tabId: number,
-    match: ElementWithHint,
-    updates: Array<HintUpdate>,
-    preventOverTyping: boolean,
-    alt: boolean,
-    timestamp: number,
+    tabId: number;
+    match: ElementWithHint;
+    updates: Array<HintUpdate>;
+    preventOverTyping: boolean;
+    alt: boolean;
+    timestamp: number;
   }): boolean {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
@@ -1069,11 +1068,11 @@ export default class BackgroundProgram {
     frameId,
     foreground,
   }: {
-    url: string,
-    elementIndex: number,
-    tabId: number,
-    frameId: number,
-    foreground: boolean,
+    url: string;
+    elementIndex: number;
+    tabId: number;
+    frameId: number;
+    foreground: boolean;
   }) {
     this.sendWorkerMessage(
       {
@@ -1655,9 +1654,9 @@ export default class BackgroundProgram {
     timestamp,
     mode,
   }: {
-    tabId: number,
-    timestamp: number,
-    mode: HintsMode,
+    tabId: number;
+    timestamp: number;
+    mode: HintsMode;
   }) {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
@@ -1683,14 +1682,14 @@ export default class BackgroundProgram {
     tabState.hintsState = {
       type: "Collecting",
       mode,
-      pendingElements: ({
+      pendingElements: {
         pendingFrames: {
           answering: 0,
           collecting: 1, // The top frame is collecting.
           lastStartWaitTimestamp: Date.now(),
         },
         elements: [],
-      }: PendingElements),
+      },
       startTime: timestamp,
       time,
       stats: [],
@@ -1707,9 +1706,9 @@ export default class BackgroundProgram {
     delayed = false,
     sendMessages = true,
   }: {
-    tabId: number,
-    delayed?: boolean,
-    sendMessages?: boolean,
+    tabId: number;
+    delayed?: boolean;
+    sendMessages?: boolean;
   }) {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
@@ -2072,8 +2071,8 @@ export default class BackgroundProgram {
     tabId,
     preventOverTyping,
   }: {
-    tabId: number,
-    preventOverTyping: boolean,
+    tabId: number;
+    preventOverTyping: boolean;
   }) {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
@@ -2440,7 +2439,7 @@ function assignHints(
     mode,
     chars,
     hasEnteredText,
-  }: { mode: HintsMode, chars: string, hasEnteredText: boolean }
+  }: { mode: HintsMode; chars: string; hasEnteredText: boolean }
 ): Array<ElementWithHint> {
   const largestTextWeight = hasEnteredText
     ? Math.max(1, ...passedElements.map((element) => element.textWeight))
@@ -2529,21 +2528,21 @@ function updateHints({
   matchHighlighted,
   updateMeasurements,
 }: {
-  mode: HintsMode,
-  enteredChars: string,
-  enteredText: string,
-  elementsWithHints: Array<ElementWithHint>,
-  highlighted: Highlighted,
-  chars: string,
-  autoActivate: boolean,
-  matchHighlighted: boolean,
-  updateMeasurements: boolean,
+  mode: HintsMode;
+  enteredChars: string;
+  enteredText: string;
+  elementsWithHints: Array<ElementWithHint>;
+  highlighted: Highlighted;
+  chars: string;
+  autoActivate: boolean;
+  matchHighlighted: boolean;
+  updateMeasurements: boolean;
 }): {
-  elementsWithHints: Array<ElementWithHint>,
-  allElementsWithHints: Array<ElementWithHint>,
-  match: ?{ elementWithHint: ElementWithHint, autoActivated: boolean },
-  updates: Array<HintUpdate>,
-  words: Array<string>,
+  elementsWithHints: Array<ElementWithHint>;
+  allElementsWithHints: Array<ElementWithHint>;
+  match: ?{ elementWithHint: ElementWithHint; autoActivated: boolean };
+  updates: Array<HintUpdate>;
+  words: Array<string>;
 } {
   const hasEnteredText = enteredText !== "";
   const hasEnteredTextOnly = hasEnteredText && enteredChars === "";

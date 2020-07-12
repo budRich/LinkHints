@@ -1,13 +1,14 @@
-
 const React = {
   createElement(
     tag: string,
-    props: ?{
-      className?: ?string,
-      onClick?: ?(MouseEvent<HTMLElement>) => unknown,
-      [string]: ?string
-    },
-    ...children: Array<?(string | HTMLElement | boolean)>
+    props:
+      | {
+          className?: string | undefined;
+          onClick?: ((event: MouseEvent) => unknown) | undefined;
+          [prop: string]: string | undefined;
+        }
+      | undefined,
+    ...children: Array<string | HTMLElement | boolean | undefined>
   ): HTMLElement {
     const element = document.createElement(tag);
 

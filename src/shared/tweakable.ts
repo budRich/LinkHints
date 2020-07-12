@@ -1,7 +1,6 @@
+import { array, Decoder, map, repr, string } from "tiny-decoders";
 
-import { Decoder, array, map, repr, string } from "tiny-decoders";
-
-import { ElementType, decodeElementType } from "./hints";
+import { decodeElementType, ElementType } from "./hints";
 import {
   addListener,
   decodeUnsignedFloat,
@@ -13,28 +12,28 @@ import {
 import { DEBUG_PREFIX } from "./options";
 
 type UnsignedInt = {
-  type: "UnsignedInt",
-  value: number,
+  type: "UnsignedInt";
+  value: number;
 };
 
 type UnsignedFloat = {
-  type: "UnsignedFloat",
-  value: number,
+  type: "UnsignedFloat";
+  value: number;
 };
 
 type StringSet = {
-  type: "StringSet",
-  value: Set<string>,
+  type: "StringSet";
+  value: Set<string>;
 };
 
 type ElementTypeSet = {
-  type: "ElementTypeSet",
-  value: Set<ElementType>,
+  type: "ElementTypeSet";
+  value: Set<ElementType>;
 };
 
 type SelectorString = {
-  type: "SelectorString",
-  value: string,
+  type: "SelectorString";
+  value: string;
 };
 
 export type TweakableValue =
@@ -47,12 +46,12 @@ export type TweakableValue =
 export type TweakableMapping = { [string]: TweakableValue };
 
 export type TweakableMeta = {
-  namespace: string,
-  defaults: TweakableMapping,
-  changed: { [string]: boolean },
-  errors: { [string]: ?string },
-  loaded: Promise<void>,
-  unlisten: () => void,
+  namespace: string;
+  defaults: TweakableMapping;
+  changed: { [string]: boolean };
+  errors: { [string]: ?string };
+  loaded: Promise<void>;
+  unlisten: () => void;
 };
 
 export function unsignedInt(value: number): UnsignedInt {
@@ -97,10 +96,10 @@ export function tweakable(
   const prefix = "tweakable";
   const keyPrefix = `${DEBUG_PREFIX}${namespace}.`;
   const defaults = { ...mapping };
-  const changed: { [$Keys<typeof mapping>]: boolean } = {};
-  const errors: { [$Keys<typeof mapping>]: ?string } = {};
+  const changed: { [key in keyof typeof mapping]: boolean } = {};
+  const errors: { [key in keyof typeof mapping]: string | undefined } = {};
 
-  function update(data: { [string]: unknown }) {
+  function update(data: { [key: string]: unknown }) {
     for (const [key, value] of Object.entries(data)) {
       try {
         if (!{}.hasOwnProperty.call(defaults, key)) {
@@ -244,7 +243,9 @@ export function normalizeStringArray(
     .sort();
 }
 
-function decodeStringSet<T: string>(decoder: Decoder<T>): Decoder<Set<T>> {
+function decodeStringSet<T extends string>(
+  decoder: Decoder<T>
+): Decoder<Set<T>> {
   return map(
     array(string),
     (arr) => new Set(array(decoder)(normalizeStringArray(arr)))

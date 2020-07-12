@@ -2,7 +2,6 @@
 // Thanks to Rollup this does not blow up the bundle size.
 /* eslint-disable import/no-restricted-paths */
 
-
 import * as React from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
@@ -19,7 +18,7 @@ import {
   unreachable,
 } from "../shared/main";
 import { DEBUG_PREFIX } from "../shared/options";
-import { TweakableValue, normalizeStringArray } from "../shared/tweakable";
+import { normalizeStringArray, TweakableValue } from "../shared/tweakable";
 import {
   t as tElementManager,
   tMeta as tMetaElementManager,
@@ -48,8 +47,8 @@ export default function Tweakable({
   before,
   onUpdate,
 }: {
-  before?: React.Node,
-  onUpdate: () => void,
+  before?: React.Node;
+  onUpdate: () => void;
 }) {
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
@@ -95,7 +94,7 @@ export default function Tweakable({
   );
 }
 
-function TweakableField<T: TweakableValue>({
+function TweakableField<T extends TweakableValue>({
   namespace,
   name,
   value,
@@ -103,12 +102,12 @@ function TweakableField<T: TweakableValue>({
   changed,
   error,
 }: {
-  namespace: string,
-  name: string,
-  value: T,
-  defaultValue: T,
-  changed: boolean,
-  error: ?string,
+  namespace: string;
+  name: string;
+  value: T;
+  defaultValue: T;
+  changed: boolean;
+  error: ?string;
 }) {
   const fullKey = `${DEBUG_PREFIX}${namespace}.${name}`;
 
@@ -299,8 +298,8 @@ export function getTweakableExport(): { [string]: unknown } {
 }
 
 export function partitionTweakable(data: {
-  +[string]: unknown
-}): [{ [string]: unknown }, { [string]: unknown }] {
+  [key: string]: unknown;
+}): [{ [key: string]: unknown }, { [key: string]: unknown }] {
   const tweakableData = {};
   const otherData = {};
 

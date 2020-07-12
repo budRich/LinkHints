@@ -1,4 +1,3 @@
-
 import { makeRandomToken } from "../shared/main";
 
 // This file is injected as a regular script in all pages and overrides
@@ -64,13 +63,17 @@ export const FLUSH_EVENT = `${secretPrefix}Flush`;
 export const RESET_EVENT = `${secretPrefix}Reset`;
 
 export type FromInjected =
-  | { type: "ClickableChanged", target: EventTarget, clickable: boolean }
-  | { type: "ShadowRootCreated", shadowRoot: ShadowRoot }
-  | { type: "Queue", hasQueue: boolean };
+  | { type: "ClickableChanged"; target: EventTarget; clickable: boolean }
+  | { type: "ShadowRootCreated"; shadowRoot: ShadowRoot }
+  | { type: "Queue"; hasQueue: boolean };
 
 export default (communicator?: {
-  +onInjectedMessage: (FromInjected) => unknown,
-  +addEventListener: (string, () => unknown, _?: true) => unknown
+  onInjectedMessage: (message: FromInjected) => unknown;
+  addEventListener: (
+    eventName: string,
+    handler: () => unknown,
+    useCapture?: true
+  ) => unknown;
 }) => {
   // Refers to the page `window` both in Firefox and other browsers.
   const win = BROWSER === "firefox" ? window.wrappedJSObject || window : window;
@@ -136,10 +139,10 @@ export default (communicator?: {
     // `hook` is run _after_ the original function. If you need to do something
     // _before_ the original function is called, use a `prehook`.
     hookInto<T>(
-      obj: { [string]: unknown },
+      obj: { [key: string]: unknown },
       name: string,
       hook?: (
-        { returnValue: any, prehookData: T | void },
+        arg: { returnValue: any; prehookData: T | void },
         ...args: Array<any>
       ) => any,
       prehook?: (...args: Array<any>) => T
@@ -302,25 +305,25 @@ export default (communicator?: {
 
   // `.onclick` and similar.
   type QueueItemProp = {
-    type: "prop",
-    hadListener: boolean,
-    element: HTMLElement,
+    type: "prop";
+    hadListener: boolean;
+    element: HTMLElement;
   };
 
   // `.addEventListener` and `.removeEventListener`.
   type QueueItemMethod = {
-    type: "method",
-    added: boolean,
-    element: HTMLElement,
-    eventName: string,
-    listener: unknown,
-    options: unknown,
+    type: "method";
+    added: boolean;
+    element: HTMLElement;
+    eventName: string;
+    listener: unknown;
+    options: unknown;
   };
 
   // Elements waiting to be sent to ElementManager.ts (in Chrome only).
   type SendQueueItem = {
-    added: boolean,
-    element: HTMLElement,
+    added: boolean;
+    element: HTMLElement;
   };
 
   class ClickListenerTracker {
@@ -580,8 +583,8 @@ export default (communicator?: {
   }
 
   type Queue<T> = {
-    items: Array<T>,
-    index: number,
+    items: Array<T>;
+    index: number;
   };
 
   function makeEmptyQueue<T>(): Queue<T> {
@@ -728,7 +731,7 @@ export default (communicator?: {
 
   type OpenComposedRootNode =
     | { type: "Document" }
-    | { type: "Element", element: Element }
+    | { type: "Element"; element: Element }
     | { type: "Closed" };
 
   function getOpenComposedRootNode(element: Element): OpenComposedRootNode {
@@ -833,11 +836,7 @@ export default (communicator?: {
     };
   }
 
-  function onPropChange({
-    prehookData,
-  }: {
-    prehookData: QueueItem | void
-  }) {
+  function onPropChange({ prehookData }: { prehookData: QueueItem | void }) {
     if (prehookData != null) {
       clickListenerTracker.queueItem(prehookData);
     }
@@ -846,7 +845,7 @@ export default (communicator?: {
   function onShadowRootCreated({
     returnValue: shadowRoot,
   }: {
-    returnValue: ShadowRoot
+    returnValue: ShadowRoot;
   }) {
     if (communicator != null) {
       communicator.onInjectedMessage({

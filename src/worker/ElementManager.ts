@@ -1,4 +1,3 @@
-
 import type {
   ElementType,
   ElementTypes,
@@ -7,9 +6,9 @@ import type {
   VisibleElement,
 } from "../shared/hints";
 import {
-  Box,
   addEventListener,
   bind,
+  Box,
   getElementFromPoint,
   getElementsFromPoint,
   getLabels,
@@ -33,13 +32,13 @@ import {
   unsignedInt,
 } from "../shared/tweakable";
 import injected, {
-  FromInjected,
   CLICKABLE_CHANGED_EVENT,
   CLICKABLE_EVENT_NAMES,
   CLICKABLE_EVENT_PROPS,
   CLOSED_SHADOW_ROOT_CREATED_1_EVENT,
   CLOSED_SHADOW_ROOT_CREATED_2_EVENT,
   FLUSH_EVENT,
+  FromInjected,
   OPEN_SHADOW_ROOT_CREATED_EVENT,
   QUEUE_EVENT,
   REGISTER_SECRET_ELEMENT_EVENT,
@@ -214,48 +213,48 @@ export const t = {
 export const tMeta = tweakable("ElementManager", t);
 
 type Rejected = {
-  isRejected: true,
+  isRejected: true;
   debug: {
-    reason: string,
-    [string]: unknown
-  },
+    reason: string;
+    [string]: unknown;
+  };
 };
 
 type Record = {
-  addedNodes: Array<Node> | NodeList<Node>,
-  removedNodes: Array<Node> | NodeList<Node>,
-  attributeName: ?string,
-  target: Node,
+  addedNodes: Array<Node> | NodeList<Node>;
+  removedNodes: Array<Node> | NodeList<Node>;
+  attributeName: ?string;
+  target: Node;
 };
 
 type QueueItem =
   | {
-      type: "Records",
-      records: Array<MutationRecord> | Array<Record>,
-      recordIndex: number,
-      addedNodeIndex: number,
-      removedNodeIndex: number,
-      childIndex: number,
-      children: ?NodeList<HTMLElement>,
-      removalsOnly: boolean,
+      type: "Records";
+      records: Array<MutationRecord> | Array<Record>;
+      recordIndex: number;
+      addedNodeIndex: number;
+      removedNodeIndex: number;
+      childIndex: number;
+      children: ?NodeList<HTMLElement>;
+      removalsOnly: boolean;
     }
   | {
-      type: "ClickableChanged",
-      target: EventTarget,
-      clickable: boolean,
+      type: "ClickableChanged";
+      target: EventTarget;
+      clickable: boolean;
     }
   | {
-      type: "OverflowChanged",
-      target: EventTarget,
+      type: "OverflowChanged";
+      target: EventTarget;
     };
 
 type MutationType = "added" | "removed" | "changed";
 
 type ShadowRootData = {
-  shadowRoot: ShadowRoot,
-  mutationObserver: MutationObserver,
-  resets: Resets,
-  active: boolean,
+  shadowRoot: ShadowRoot;
+  mutationObserver: MutationObserver;
+  resets: Resets;
+  active: boolean;
 };
 
 type Deadline = { timeRemaining: () => number };
@@ -265,18 +264,18 @@ const infiniteDeadline: Deadline = {
 };
 
 export default class ElementManager {
-  onMutationExternal: (Array<MutationRecord>) => unknown;
+  onMutationExternal: (records: Array<MutationRecord>) => unknown;
   queue: Queue<QueueItem> = makeEmptyQueue();
-  injectedHasQueue: boolean = false;
-  injectedListeners: Map<string, Array<() => unknown>> = new Map();
-  elements: Map<HTMLElement, ElementType> = new Map();
+  injectedHasQueue = false;
+  injectedListeners = new Map<string, Array<() => unknown>>();
+  elements = new Map<HTMLElement, ElementType>();
   visibleElements: Set<HTMLElement> = new Set();
   visibleFrames: Set<HTMLIFrameElement | HTMLFrameElement> = new Set();
   elementsWithClickListeners: WeakSet<HTMLElement> = new WeakSet();
   elementsWithScrollbars: WeakSet<HTMLElement> = new WeakSet();
   shadowRoots: WeakMap<Element, ShadowRootData> = new WeakMap();
-  idleCallbackId: ?IdleCallbackID = undefined;
-  bailed: boolean = false;
+  idleCallbackId: IdleCallbackID | undefined = undefined;
+  bailed = false;
   secretElementResets: Resets = new Resets();
   resets: Resets = new Resets();
 
@@ -299,7 +298,7 @@ export default class ElementManager {
   constructor({
     onMutation,
   }: {
-    onMutation: (Array<MutationRecord>) => unknown,
+    onMutation: (records: Array<MutationRecord>) => unknown;
   }) {
     this.onMutationExternal = onMutation;
 
@@ -1490,9 +1489,9 @@ export default class ElementManager {
 }
 
 type Queue<T> = {
-  items: Array<T>,
-  index: number,
-  addedElements: Set<HTMLElement>,
+  items: Array<T>;
+  index: number;
+  addedElements: Set<HTMLElement>;
 };
 
 function makeEmptyQueue<T>(): Queue<T> {
@@ -1777,13 +1776,13 @@ function getSingleRectPoint({
   range,
   time,
 }: {
-  element: HTMLElement,
-  elementType: ElementType,
-  rect: ClientRect,
-  visibleBox: Box,
-  viewports: Array<Box>,
-  range: Range,
-  time: TimeTracker,
+  element: HTMLElement;
+  elementType: ElementType;
+  rect: ClientRect;
+  visibleBox: Box;
+  viewports: Array<Box>;
+  range: Range;
+  time: TimeTracker;
 }): Point {
   // Scrollbars are usually on the right side, so put the hint there, making it
   // easier to see that the hint is for scrolling and reducing overlap.
@@ -1910,11 +1909,11 @@ function getMultiRectPoint({
   range,
   time,
 }: {
-  element: HTMLElement,
-  visibleBoxes: Array<Box>,
-  viewports: Array<Box>,
-  range: Range,
-  time: TimeTracker,
+  element: HTMLElement;
+  visibleBoxes: Array<Box>;
+  viewports: Array<Box>;
+  range: Range;
+  time: TimeTracker;
 }): Point {
   function isAcceptable(point: Point): boolean {
     return visibleBoxes.some((box) => isWithin(point, box));
@@ -1951,7 +1950,7 @@ function getMultiRectPoint({
 function getFirstImagePoint(
   element: HTMLElement,
   viewports: Array<Box>
-): ?{ point: Point, rect: ClientRect } {
+): ?{ point: Point; rect: ClientRect } {
   const images = [
     // First try to find an image _child._ For example, <button
     // class="icon-button"><img></button>`. (This button should get the hint at
@@ -2024,8 +2023,8 @@ function getNonCoveredPoint(
     y,
     maxX,
     time,
-  }: { x: number, y: number, maxX: number, time: TimeTracker }
-): ?{ x: number, y: number } {
+  }: { x: number; y: number; maxX: number; time: TimeTracker }
+): ?{ x: number; y: number } {
   time.start("getNonCoveredPoint:getElementFromPoint");
   const elementAtPoint = getElementFromPoint(element, x, y);
 
@@ -2104,12 +2103,12 @@ function getBestNonEmptyTextPoint({
   preferTextStart = false,
   range,
 }: {
-  element: HTMLElement,
-  elementRect: ClientRect,
-  viewports: Array<Box>,
-  isAcceptable: (Point) => boolean,
-  preferTextStart: boolean,
-  range: Range,
+  element: HTMLElement;
+  elementRect: ClientRect;
+  viewports: Array<Box>;
+  isAcceptable: (Point) => boolean;
+  preferTextStart: boolean;
+  range: Range;
 }): ?Point {
   const align = "right";
 
@@ -2271,7 +2270,7 @@ function hasClickListenerProp(element: HTMLElement): boolean {
   );
 }
 
-function getXY(box: Box | ClientRect): { x: number, y: number } {
+function getXY(box: Box | ClientRect): { x: number; y: number } {
   return {
     // $FlowIgnore: Chrome and Firefox _do_ support `.x` and `.y` on ClientRects (aka DOMRects).
     x: box.x,

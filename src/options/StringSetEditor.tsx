@@ -1,4 +1,3 @@
-
 import * as React from "preact";
 import { useLayoutEffect, useState } from "preact/hooks";
 
@@ -12,9 +11,9 @@ export default function StringSetEditor({
   id,
   savedValue,
 }: {
-  savedValue: Set<string>,
-  save: (Set<string>, Reason) => void,
-  id?: string,
+  savedValue: Set<string>;
+  save: (set: Set<string>, reason: Reason) => void;
+  id?: string;
 }) {
   const [hasFocus, setHasFocus] = useState<boolean>(false);
   const [stateValue, setStateValue] = useState<Array<string> | void>(undefined);

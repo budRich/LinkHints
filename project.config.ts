@@ -1,4 +1,3 @@
-
 const VERSION = "1.1.0";
 
 const FAVICON_SIZES = [16, 32];
@@ -15,9 +14,9 @@ const ICONS_DISABLED = {
 };
 
 const FAVICONS: Array<{
-  input: string,
-  output: string,
-  size: number,
+  input: string;
+  output: string;
+  size: number;
 }> = ICONS.svg
   .filter(([size]) => FAVICON_SIZES.includes(size))
   .map(([size, svg]) => ({
@@ -152,33 +151,35 @@ export default {
   },
 };
 
-function getBrowser(): ?Browser {
+function getBrowser(): Browser | undefined {
   switch (process.env.BROWSER) {
-    case ("chrome": Browser):
+    case "chrome":
       return "chrome";
-    case ("firefox": Browser):
+    case "firefox":
       return "firefox";
     default:
       return undefined;
   }
 }
 
-function browserSpecificIgnores(browser: ?Browser): Array<string> {
+function browserSpecificIgnores(browser: Browser | undefined): Array<string> {
   switch (browser) {
     case "chrome":
       return ["icons/svg-*"];
     case "firefox":
       return ["icons/png-*"];
-    default:
+    case undefined:
       return [];
   }
 }
 
-function needsPolyfill(browser: ?Browser): boolean {
+function needsPolyfill(browser: Browser | undefined): boolean {
   switch (browser) {
+    case "chrome":
+      return true;
     case "firefox":
       return false;
-    default:
+    case undefined:
       return true;
   }
 }

@@ -1,4 +1,3 @@
-
 import * as React from "preact";
 import {
   array,
@@ -18,13 +17,13 @@ import {
   SUGGESTION_VIMIUM,
 } from "../shared/css";
 import {
+  isModifierKey,
+  keyboardEventToKeypress,
   KeyboardMapping,
   KeyPair,
   Keypress,
   KeyTranslations,
   NormalizedKeypress,
-  isModifierKey,
-  keyboardEventToKeypress,
   normalizeKeypress,
 } from "../shared/keyboard";
 import {
@@ -46,10 +45,10 @@ import type {
   ToBackground,
 } from "../shared/messages";
 import {
-  type OptionsData,
-  type PartialOptions,
   importOptions,
   normalizeChars,
+  OptionsData,
+  PartialOptions,
 } from "../shared/options";
 import type { TabsPerf } from "../shared/perf";
 import Attachment from "./Attachment";
@@ -88,7 +87,7 @@ const CSS_SUGGESTIONS = [
   { name: "Vimium", value: SUGGESTION_VIMIUM },
 ];
 
-const getLayoutMap: ?() => Promise<Map<string, string>> =
+const getLayoutMap: ?(() => Promise<Map<string, string>>) =
   // $FlowIgnore: Flow doesn’t know about `navigator.keyboard` yet.
   navigator.keyboard != null &&
   typeof navigator.keyboard.getLayoutMap === "function"
@@ -99,48 +98,48 @@ const getLayoutMap: ?() => Promise<Map<string, string>> =
 type Props = {};
 
 type State = {
-  options: ?OptionsData,
-  hasSaved: boolean,
-  customChars: string,
+  options: ?OptionsData;
+  hasSaved: boolean;
+  customChars: string;
   keyTranslationsInput: {
-    text: string,
-    testOnly: boolean,
-    lastKeypress: ?Keypress,
-  },
+    text: string;
+    testOnly: boolean;
+    lastKeypress: ?Keypress;
+  };
   keyboardDetect: ?(
     | Error
     | {
-        numReceived: number,
-        numFullyUpdated: number,
-        numAlreadyFullyUpdated: number,
-        numPartiallyUpdated: number,
-        numAlreadyPartiallyUpdated: number,
-        numNotUpdated: number,
+        numReceived: number;
+        numFullyUpdated: number;
+        numAlreadyFullyUpdated: number;
+        numPartiallyUpdated: number;
+        numAlreadyPartiallyUpdated: number;
+        numNotUpdated: number;
       }
-  ),
+  );
   capturedKeypressWithTimestamp: ?{
-    timestamp: number,
-    keypress: NormalizedKeypress,
-  },
-  peek: boolean,
-  cssSuggestion: string,
+    timestamp: number;
+    keypress: NormalizedKeypress;
+  };
+  peek: boolean;
+  cssSuggestion: string;
   importData: {
-    successCount: ?number,
-    tweakableCount: ?number,
-    errors: Array<string>,
-  },
-  perf: TabsPerf,
-  expandedPerfTabIds: Array<string>,
-  expandedPerf: boolean,
-  expandedDebug: boolean,
-  localStorageCleared: ?Date,
+    successCount: ?number;
+    tweakableCount: ?number;
+    errors: Array<string>;
+  };
+  perf: TabsPerf;
+  expandedPerfTabIds: Array<string>;
+  expandedPerf: boolean;
+  expandedDebug: boolean;
+  localStorageCleared: ?Date;
 };
 
 export default class OptionsProgram extends React.Component<Props, State> {
   resets: Resets = new Resets();
   hiddenErrors: Array<string> = [];
   keysTableRef: { current: HTMLDivElement | null } = React.createRef();
-  hasRestoredPosition: boolean = false;
+  hasRestoredPosition = false;
 
   state = {
     options: undefined,
@@ -1540,7 +1539,7 @@ export default class OptionsProgram extends React.Component<Props, State> {
           map(array(string), (ids) =>
             ids.filter((id) => ({}.hasOwnProperty.call(this.state.perf, id)))
           ),
-          ([]: Array<string>)
+          [] as Array<string>
         ),
         expandedPerf: optional(boolean, false),
         expandedDebug: optional(boolean, false),
@@ -1642,7 +1641,7 @@ function wrapMessage(message: FromOptions): ToBackground {
 }
 
 function updateKeyTranslations(
-  { code, key, shift }: { code: string, key: string, shift: boolean },
+  { code, key, shift }: { code: string; key: string; shift: boolean },
   keyTranslations: KeyTranslations
 ): ?KeyTranslations {
   const previousPair = {}.hasOwnProperty.call(keyTranslations, code)
@@ -1655,7 +1654,7 @@ function updateKeyTranslations(
 }
 
 function updatePair(
-  { key, shift }: { key: string, shift: boolean },
+  { key, shift }: { key: string; shift: boolean },
   previousPair: ?KeyPair
 ): KeyPair {
   if (!shift && key.length === 1 && key.toLowerCase() !== key.toUpperCase()) {
@@ -1681,9 +1680,9 @@ function ActivateHighlightedKey({
   mappings,
   defaultMappings,
 }: {
-  mac: boolean,
-  mappings: Array<KeyboardMapping>,
-  defaultMappings: Array<KeyboardMapping>,
+  mac: boolean;
+  mappings: Array<KeyboardMapping>;
+  defaultMappings: Array<KeyboardMapping>;
 }) {
   const first = mappings.find((mapping) => mapping.action === "ActivateHint");
 
@@ -1733,7 +1732,7 @@ function readAsJson(file: File): Promise<unknown> {
   return new Response(file).json();
 }
 
-function mixedObject(value: unknown): { +[string]: unknown } {
+function mixedObject(value: unknown): { [key: string]: unknown } {
   if (typeof value !== "object" || value == null || Array.isArray(value)) {
     throw new TypeError(`Expected an object, but got: ${repr(value)}`);
   }

@@ -1,4 +1,3 @@
-
 import * as React from "preact";
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 
@@ -17,12 +16,12 @@ export default function TextInput({
   onKeyDown,
   ...restProps
 }: {
-  savedValue: string,
-  normalize?: (string) => string,
-  save?: (string, Reason) => void,
-  textarea?: boolean,
-  className?: string,
-  onKeyDown?: (SyntheticKeyboardEvent<HTMLInputElement>) => void
+  savedValue: string;
+  normalize?: (string) => string;
+  save?: (string, Reason) => void;
+  textarea?: boolean;
+  className?: string;
+  onKeyDown?: (event: SyntheticKeyboardEvent<HTMLInputElement>) => void;
 }) {
   const Tag = textarea ? "textarea" : "input";
   const readonly = saveProp == null;

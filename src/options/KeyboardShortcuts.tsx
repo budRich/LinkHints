@@ -1,12 +1,11 @@
-
 import * as React from "preact";
 
 import {
   KeyboardAction,
   KeyboardMapping,
   NormalizedKeypress,
-  Shortcut,
   serializeShortcut,
+  Shortcut,
 } from "../shared/keyboard";
 import { classlist, deepEqual, unreachable } from "../shared/main";
 import ButtonWithPopup from "./ButtonWithPopup";
@@ -15,37 +14,41 @@ import KeyboardShortcut, { hasShift, viewKey } from "./KeyboardShortcut";
 
 type ShortcutError =
   | { type: "UnrecognizedKey" }
-  | { type: "MissingModifier", shift: boolean }
-  | { type: "OtherShortcutConflict", otherMapping: KeyboardMapping }
+  | { type: "MissingModifier"; shift: boolean }
+  | { type: "OtherShortcutConflict"; otherMapping: KeyboardMapping }
   | { type: "CommonTextEditingShortcutConflict" }
-  | { type: "MacOptionKey", printableKey: string, hasOtherModifier: boolean };
+  | { type: "MacOptionKey"; printableKey: string; hasOtherModifier: boolean };
 
 type Mode = "Normal" | "Hints";
 
 type Props = {
-  id: string,
-  name: string,
-  mode: Mode,
-  mac: boolean,
-  useKeyTranslations: boolean,
-  description?: React.Node,
-  chars: string,
-  mappings: Array<KeyboardMapping>,
-  defaultMappings: Array<KeyboardMapping>,
-  capturedKeypressWithTimestamp: ?{
-    timestamp: number,
-    keypress: NormalizedKeypress,
-  },
-  onChange: (Array<KeyboardMapping>) => void,
-  onAddChange: (boolean) => void,
+  id: string;
+  name: string;
+  mode: Mode;
+  mac: boolean;
+  useKeyTranslations: boolean;
+  description?: React.Node;
+  chars: string;
+  mappings: Array<KeyboardMapping>;
+  defaultMappings: Array<KeyboardMapping>;
+  capturedKeypressWithTimestamp:
+    | {
+        timestamp: number;
+        keypress: NormalizedKeypress;
+      }
+    | undefined;
+  onChange: (mappings: Array<KeyboardMapping>) => void;
+  onAddChange: (open: boolean) => void;
 };
 
 type State = {
-  addingAction: ?KeyboardAction,
-  shortcutError: ?{
-    shortcut: Shortcut,
-    error: ShortcutError,
-  },
+  addingAction: KeyboardAction | undefined;
+  shortcutError:
+    | {
+        shortcut: Shortcut;
+        error: ShortcutError;
+      }
+    | undefined;
 };
 
 export default class KeyboardShortcuts extends React.Component<Props, State> {
@@ -379,8 +382,8 @@ function ShortcutAddDisplay({
   mac,
   defaultMapping,
 }: {
-  mac: boolean,
-  defaultMapping: KeyboardMapping,
+  mac: boolean;
+  defaultMapping: KeyboardMapping;
 }) {
   return (
     <div>
@@ -416,10 +419,10 @@ function ShortcutErrorDisplay({
   useKeyTranslations,
   error,
 }: {
-  mac: boolean,
-  mode: Mode,
-  useKeyTranslations: boolean,
-  error: ShortcutError,
+  mac: boolean;
+  mode: Mode;
+  useKeyTranslations: boolean;
+  error: ShortcutError;
 }) {
   switch (error.type) {
     case "UnrecognizedKey":
@@ -552,7 +555,7 @@ function printKey(printableKey: string): string {
 }
 
 type KeyboardActionDescription = {
-  name: string,
+  name: string;
 };
 
 export function getKeyboardActionId(action: KeyboardAction): string {

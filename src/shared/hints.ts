@@ -1,5 +1,4 @@
-
-import { Decoder, array, either, map, repr, string } from "tiny-decoders";
+import { array, Decoder, either, map, repr, string } from "tiny-decoders";
 
 // Remember to keep `decodeElementType` below in sync.
 export type ElementType =
@@ -43,86 +42,84 @@ export const decodeElementTypes: Decoder<ElementTypes> = either(
   array(map(string, decodeElementType))
 );
 
-export type Point = {
-  x: number,
-  y: number,
-  align: "left" | "right",
-  debug: string,
-};
+export interface Point {
+  x: number;
+  y: number;
+  align: "left" | "right";
+  debug: string;
+}
 
 export interface HintMeasurements extends Point {
-  maxX: number,
-  weight: number,
-};
+  maxX: number;
+  weight: number;
+}
 
-export type VisibleElement = {
-  element: HTMLElement,
-  type: ElementType,
-  measurements: HintMeasurements,
-  hasClickListener: boolean,
-};
+export interface VisibleElement {
+  element: HTMLElement;
+  type: ElementType;
+  measurements: HintMeasurements;
+  hasClickListener: boolean;
+}
 
-export type ElementReport = {
-  type: ElementType,
-  index: number,
-  hintMeasurements: HintMeasurements,
-  url: ?string,
-  urlWithTarget: ?string,
-  text: string,
-  textContent: boolean,
-  textWeight: number,
-  isTextInput: boolean,
-  hasClickListener: boolean,
-};
+export interface ElementReport {
+  type: ElementType;
+  index: number;
+  hintMeasurements: HintMeasurements;
+  url: string | undefined;
+  urlWithTarget: string | undefined;
+  text: string;
+  textContent: boolean;
+  textWeight: number;
+  isTextInput: boolean;
+  hasClickListener: boolean;
+}
 
-export type ExtendedElementReport = {
-  ...ElementReport,
+export interface ExtendedElementReport extends ElementReport {
   frame: {
-    id: number,
-    index: number,
-  },
-  hidden: boolean,
-};
+    id: number;
+    index: number;
+  };
+  hidden: boolean;
+}
 
-export type ElementWithHint = {
-  ...ExtendedElementReport,
-  weight: number,
-  hint: string,
-};
+export interface ElementWithHint extends ExtendedElementReport {
+  weight: number;
+  hint: string;
+}
 
 export function elementKey(element: ElementWithHint): string {
   const { x, y, align } = element.hintMeasurements;
   return [x, y, align, element.hint].join("\n");
 }
 
-export type ElementRender = {
-  hintMeasurements: HintMeasurements,
-  hint: string,
-  highlighted: boolean,
-  invertedZIndex: number,
-};
+export interface ElementRender {
+  hintMeasurements: HintMeasurements;
+  hint: string;
+  highlighted: boolean;
+  invertedZIndex: number;
+}
 
 export type HintUpdate =
   | {
-      type: "Hide",
-      index: number,
-      hidden: true,
+      type: "Hide";
+      index: number;
+      hidden: true;
     }
   | {
-      type: "UpdateContent",
-      index: number,
-      order: number,
-      matchedChars: string,
-      restChars: string,
-      highlighted: boolean,
-      hidden: boolean,
+      type: "UpdateContent";
+      index: number;
+      order: number;
+      matchedChars: string;
+      restChars: string;
+      highlighted: boolean;
+      hidden: boolean;
     }
   | {
-      type: "UpdatePosition",
-      index: number,
-      order: number,
-      hint: string,
-      hintMeasurements: HintMeasurements,
-      highlighted: boolean,
-      hidden: boolean,
+      type: "UpdatePosition";
+      index: number;
+      order: number;
+      hint: string;
+      hintMeasurements: HintMeasurements;
+      highlighted: boolean;
+      hidden: boolean;
     };

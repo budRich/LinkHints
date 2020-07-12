@@ -1,4 +1,3 @@
-
 import { Decoder, map, number, repr } from "tiny-decoders";
 
 // It's tempting to put a random number or something in the ID, but in case
@@ -105,7 +104,7 @@ Example:
 */
 export function bind(
   object: { [string]: unknown },
-  methods: Array<Method | [Method, { log?: boolean, catch?: boolean }]>
+  methods: Array<Method | [Method, { log?: boolean; catch?: boolean }]>
 ) {
   for (const item of methods) {
     const [method, options] = Array.isArray(item) ? item : [item, {}];
@@ -158,7 +157,7 @@ export function addEventListener(
   target: EventTarget,
   eventName: string,
   listener: AnyFunction,
-  options: { capture?: boolean, passive?: boolean } = { ...undefined }
+  options: { capture?: boolean; passive?: boolean } = { ...undefined }
 ): () => void {
   const fullOptions = { capture: true, passive: true, ...options };
   target.addEventListener(eventName, listener, fullOptions);
@@ -169,8 +168,8 @@ export function addEventListener(
 
 export function addListener<Listener, Options>(
   target: {
-    addListener: (Listener, options?: Options) => void,
-    removeListener: (Listener) => void
+    addListener: (Listener, options?: Options) => void;
+    removeListener: (Listener) => void;
   },
   listener: Listener,
   options?: Options
@@ -213,7 +212,7 @@ export class Resets {
  */
 export function partition<T>(
   array: Array<T>,
-  fn: (T, number, Array<T>) => boolean
+  fn: (item: T, index: number, array: Array<T>) => boolean
 ): [Array<T>, Array<T>] {
   const left = [];
   const right = [];
@@ -236,10 +235,10 @@ export function makeRandomToken(): string {
 }
 
 export type Box = {
-  +x: number,
-  +y: number,
-  +width: number,
-  +height: number,
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };
 
 // Turn a `ClientRect` into a `Box` using the coordinates of the topmost
@@ -299,10 +298,7 @@ export function getViewport(): Box {
   };
 }
 
-export function setStyles(
-  element: HTMLElement,
-  styles: { [string]: string }
-) {
+export function setStyles(element: HTMLElement, styles: { [string]: string }) {
   for (const [property, value] of Object.entries(styles)) {
     // $FlowIgnore: Flow thinks that `value` is `unknown` here, but it is a `string`.
     element.style.setProperty(property, value, "important");
@@ -396,10 +392,10 @@ export function getTextRects({
   words,
   checkElementAtPoint = true,
 }: {
-  element: HTMLElement,
-  viewports: Array<Box>,
-  words: Set<string>,
-  checkElementAtPoint?: boolean,
+  element: HTMLElement;
+  viewports: Array<Box>;
+  words: Set<string>;
+  checkElementAtPoint?: boolean;
 }): Array<Box> {
   const text = extractText(element).toLowerCase();
 

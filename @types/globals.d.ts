@@ -35,3 +35,9 @@ declare function XPCNativeWrapper<T>(x: T): T;
 declare type HTMLFrameElement = HTMLIFrameElement;
 
 declare type SVGElement = Element;
+
+declare global {
+  interface Window {
+    wrappedJSObject?: Window;
+  }
+}
