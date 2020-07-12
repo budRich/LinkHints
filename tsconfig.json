@@ -4,7 +4,9 @@
     "forceConsistentCasingInFileNames": true,
     "importsNotUsedAsValues": "error",
     "isolatedModules": true,
+    "jsx": "react",
     "module": "ESNext",
+    "moduleResolution": "node",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
@@ -12,8 +14,7 @@
     "noUnusedParameters": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "ESNext",
+    "target": "ESNext"
     // "esModuleInterop": true,
-    // "moduleResolution": "node",
   }
 }
