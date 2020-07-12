@@ -27,7 +27,7 @@ export default function TextInput({
   const readonly = saveProp == null;
 
   const [focused, setFocused] = useState<boolean>(false);
-  const [stateValue, setStateValue] = useState<string | void>(undefined);
+  const [stateValue, setStateValue] = useState<string | undefined>(undefined);
 
   const value = stateValue != null ? stateValue : savedValue;
 

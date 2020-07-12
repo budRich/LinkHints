@@ -142,7 +142,7 @@ export default (communicator?: {
       obj: { [key: string]: unknown },
       name: string,
       hook?: (
-        arg: { returnValue: any; prehookData: T | void },
+        arg: { returnValue: any; prehookData: T | undefined },
         ...args: Array<any>
       ) => any,
       prehook?: (...args: Array<any>) => T
@@ -824,7 +824,7 @@ export default (communicator?: {
     });
   }
 
-  function onPropChangePreHook(element: unknown): QueueItem | void {
+  function onPropChangePreHook(element: unknown): QueueItem | undefined {
     if (!(element instanceof HTMLElement2)) {
       return undefined;
     }
@@ -836,7 +836,11 @@ export default (communicator?: {
     };
   }
 
-  function onPropChange({ prehookData }: { prehookData: QueueItem | void }) {
+  function onPropChange({
+    prehookData,
+  }: {
+    prehookData: QueueItem | undefined;
+  }) {
     if (prehookData != null) {
       clickListenerTracker.queueItem(prehookData);
     }

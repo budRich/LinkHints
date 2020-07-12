@@ -16,7 +16,9 @@ export default function StringSetEditor({
   id?: string;
 }) {
   const [hasFocus, setHasFocus] = useState<boolean>(false);
-  const [stateValue, setStateValue] = useState<Array<string> | void>(undefined);
+  const [stateValue, setStateValue] = useState<Array<string> | undefined>(
+    undefined
+  );
 
   const value = stateValue != null ? stateValue : Array.from(savedValue);
   const endsWithBlank =
