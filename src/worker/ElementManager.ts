@@ -216,7 +216,7 @@ type Rejected = {
   isRejected: true;
   debug: {
     reason: string;
-    [string]: unknown;
+    [key: string]: unknown;
   };
 };
 

@@ -290,7 +290,7 @@ export default (communicator?: {
 
   function logHookError(
     error: Error,
-    obj: { [string]: unknown },
+    obj: { [key: string]: unknown },
     name: string
   ) {
     logError(`Failed to run hook for ${name} on`, obj, error);

@@ -103,7 +103,7 @@ Example:
     }
 */
 export function bind(
-  object: { [string]: unknown },
+  object: { [key: string]: unknown },
   methods: Array<Method | [Method, { log?: boolean; catch?: boolean }]>
 ) {
   for (const item of methods) {
@@ -298,7 +298,10 @@ export function getViewport(): Box {
   };
 }
 
-export function setStyles(element: HTMLElement, styles: { [string]: string }) {
+export function setStyles(
+  element: HTMLElement,
+  styles: { [key: string]: string }
+) {
   for (const [property, value] of Object.entries(styles)) {
     // $FlowIgnore: Flow thinks that `value` is `unknown` here, but it is a `string`.
     element.style.setProperty(property, value, "important");
@@ -490,7 +493,7 @@ export function getLabels(element: HTMLElement): NodeList | undefined {
 }
 
 export function classlist(
-  ...args: Array<string | { [string]: boolean }>
+  ...args: Array<string | { [key: string]: boolean }>
 ): string {
   return args
     .flatMap((arg) =>

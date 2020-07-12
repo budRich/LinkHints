@@ -837,7 +837,7 @@ function getHintPosition({
   hintMeasurements: HintMeasurements;
   viewport: Box;
 }): {
-  styles: { [string]: string };
+  styles: { [key: string]: string };
   maybeOutsideHorizontally: boolean;
 } {
   const width = Math.ceil(
