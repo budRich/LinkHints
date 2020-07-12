@@ -27,7 +27,7 @@ type Props = {
   mode: Mode;
   mac: boolean;
   useKeyTranslations: boolean;
-  description?: React.Node;
+  description?: React.VNode;
   chars: string;
   mappings: Array<KeyboardMapping>;
   defaultMappings: Array<KeyboardMapping>;

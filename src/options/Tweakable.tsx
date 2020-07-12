@@ -47,7 +47,7 @@ export default function Tweakable({
   before,
   onUpdate,
 }: {
-  before?: React.Node;
+  before?: React.VNode;
   onUpdate: () => void;
 }) {
   const onUpdateRef = useRef(onUpdate);

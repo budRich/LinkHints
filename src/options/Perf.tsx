@@ -179,7 +179,7 @@ export default function Perf({
   );
 }
 
-function toCells(items: Array<string>): Array<React.Node> {
+function toCells(items: Array<string>): Array<React.VNode> {
   const lastIndex = items.length - 1;
   return Array.from({ length: MAX_PERF_ENTRIES }, (_, index) => (
     <td key={index}>{index <= lastIndex ? items[index] : null}</td>

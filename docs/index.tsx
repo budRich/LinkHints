@@ -462,7 +462,7 @@ function Demo({
   title,
   filterByText = false,
 }: {
-  title: React.Node;
+  title: React.VNode;
   filterByText?: boolean;
 }) {
   function Hint({

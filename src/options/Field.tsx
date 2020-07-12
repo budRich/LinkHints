@@ -17,12 +17,12 @@ export default function Field({
   id: string;
   connected?: boolean;
   fullWidth?: boolean;
-  label: React.Node;
+  label: React.VNode;
   span?: boolean;
-  description?: React.Node;
+  description?: React.VNode;
   changed: boolean;
   changedRight?: boolean;
-  render: ({ id: string }) => React.Node;
+  render: ({ id: string }) => React.VNode;
   onReset?: () => void;
 }) {
   const reset =

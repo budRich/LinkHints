@@ -8,9 +8,9 @@ export default function Attachment({
   children,
   ...restProps
 }: {
-  label?: React.Node;
-  content?: React.Node;
-  children: React.Node;
+  label?: React.VNode;
+  content?: React.VNode;
+  children: React.VNode;
 }) {
   const Tag = label != null ? "label" : "span";
   return (
