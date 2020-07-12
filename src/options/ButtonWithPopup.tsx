@@ -11,7 +11,7 @@ export default function ButtonWithPopup({
   className = "",
   ...restProps
 }: {
-  buttonContent: React.VNode;
+  buttonContent: React.ComponentChildren;
   popupContent: (actions: { close: () => void }) => React.VNode;
   open?: boolean;
   onChange?: (boolean) => void;

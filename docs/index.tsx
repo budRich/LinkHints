@@ -286,7 +286,7 @@ const SECTIONS = [
   },
 ];
 
-export default () =>
+export default (): string =>
   render(
     <Page
       title="Link Hints"
@@ -462,7 +462,7 @@ function Demo({
   title,
   filterByText = false,
 }: {
-  title: React.VNode;
+  title: React.ComponentChildren;
   filterByText?: boolean;
 }) {
   function Hint({

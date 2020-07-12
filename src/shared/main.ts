@@ -76,14 +76,12 @@ function getLogMethod(level: LogLevel): AnyFunction {
 
     case "debug":
       return console.debug;
-
-    default:
-      return unreachable(level);
   }
 }
 /* eslint-enable no-console */
 
-type Method = (...args: Array<unknown>) => void | Promise<void>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Method = (...args: Array<any>) => void | Promise<any>;
 
 /*
 Binds class methods to the instance, so you can do `foo(this.method)` instead

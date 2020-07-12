@@ -365,7 +365,7 @@ export function unflattenOptions(object: FlatOptions): FlatOptions {
 
 export const DEBUG_PREFIX = "debug.";
 
-export async function getRawOptions(): FlatOptions {
+export async function getRawOptions(): Promise<FlatOptions> {
   const raw = await browser.storage.sync.get();
   // Exclude all tweakables since they are handled completely differently.
   return Object.fromEntries(

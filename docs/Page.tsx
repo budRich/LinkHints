@@ -11,7 +11,7 @@ export default function Page({
   title: string;
   description: string;
   css: string;
-  children: React.VNode;
+  children: React.ComponentChildren;
 }) {
   return (
     <html lang="en">

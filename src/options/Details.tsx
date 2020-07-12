@@ -8,10 +8,10 @@ export default function Details({
   onChange,
   children,
 }: {
-  summary: React.VNode;
+  summary: React.ComponentChildren;
   open: boolean;
   onChange: (boolean) => void;
-  children: React.VNode;
+  children: React.ComponentChildren;
 }) {
   return (
     <div>

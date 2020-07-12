@@ -15,7 +15,9 @@ import {
 import {
   HintsMode,
   KeyboardAction,
+  KeyboardMapping,
   KeyboardModeBackground,
+  KeyboardModeWorker,
   NormalizedKeypress,
   PREVENT_OVERTYPING_ALLOWED_KEYBOARD_ACTIONS,
 } from "../shared/keyboard";
@@ -110,10 +112,12 @@ type HintsState =
 // All HintsState types store the highlighted hints (highlighted due to being
 // matched, not due to filtering by text), so that they can stay highlighted for
 // `t.MATCH_HIGHLIGHT_DURATION` ms.
-type Highlighted = Array<{
+type Highlighted = Array<HighlightedItem>;
+
+type HighlightedItem = {
   sinceTimestamp: number;
   element: ElementWithHint;
-}>;
+};
 
 type PendingElements = {
   pendingFrames: {
@@ -221,7 +225,7 @@ export default class BackgroundProgram {
     ]);
   }
 
-  async start() {
+  async start(): Promise<void> {
     log("log", "BackgroundProgram#start", BROWSER, PROD);
 
     try {
@@ -251,7 +255,9 @@ export default class BackgroundProgram {
     );
 
     for (const tab of tabs) {
-      this.updateIcon(tab.id);
+      if (tab.id !== undefined) {
+        this.updateIcon(tab.id);
+      }
     }
 
     browser.browserAction.setBadgeBackgroundColor({ color: COLOR_BADGE });
@@ -325,7 +331,7 @@ export default class BackgroundProgram {
   async onMessage(
     message: ToBackground,
     sender: browser.runtime.MessageSender
-  ) {
+  ): Promise<undefined> {
     // `info` can be missing when the message comes from for example the popup
     // (which isn’t associated with a tab). The worker script can even load in
     // an `about:blank` frame somewhere when hovering the browserAction!
@@ -349,30 +355,27 @@ export default class BackgroundProgram {
         if (info != null) {
           this.onWorkerMessage(message.message, info, tabState);
         }
-        break;
+        return undefined;
 
       case "FromRenderer":
         if (info != null) {
           this.onRendererMessage(message.message, info, tabState);
         }
-        break;
+        return undefined;
 
       case "FromPopup":
         this.onPopupMessage(message.message);
-        break;
+        return undefined;
 
       case "FromOptions":
         if (info != null) {
           this.onOptionsMessage(message.message, info, tabState);
         }
-        break;
-
-      default:
-        unreachable(message.type, message);
+        return undefined;
     }
   }
 
-  onConnect(port: Port) {
+  onConnect(port: browser.runtime.Port): void {
     port.onDisconnect.addListener(({ sender }) => {
       const info = sender == null ? undefined : makeMessageInfo(sender);
       if (info != null) {
@@ -383,7 +386,11 @@ export default class BackgroundProgram {
     });
   }
 
-  onWorkerMessage(message: FromWorker, info: MessageInfo, tabState: TabState) {
+  onWorkerMessage(
+    message: FromWorker,
+    info: MessageInfo,
+    tabState: TabState
+  ): undefined {
     switch (message.type) {
       case "WorkerScriptAdded":
         this.sendWorkerMessage(
@@ -396,25 +403,25 @@ export default class BackgroundProgram {
             frameId: info.frameId,
           }
         );
-        break;
+        return undefined;
 
       case "KeyboardShortcutMatched":
         this.onKeyboardShortcut(message.action, info, message.timestamp);
-        break;
+        return undefined;
 
       case "NonKeyboardShortcutKeypress":
         this.handleHintInput(info.tabId, message.timestamp, {
           type: "Input",
           keypress: message.keypress,
         });
-        break;
+        return undefined;
 
       case "KeypressCaptured":
         this.sendOptionsMessage({
           type: "KeypressCaptured",
           keypress: message.keypress,
         });
-        break;
+        return undefined;
 
       case "ReportVisibleFrame": {
         const { hintsState } = tabState;
@@ -425,13 +432,13 @@ export default class BackgroundProgram {
         const { pendingFrames } = hintsState.pendingElements;
         pendingFrames.answering = Math.max(0, pendingFrames.answering - 1);
         pendingFrames.collecting += 1;
-        break;
+        return undefined;
       }
 
       case "ReportVisibleElements": {
         const { hintsState } = tabState;
         if (hintsState.type !== "Collecting") {
-          return;
+          return undefined;
         }
 
         const elements: Array<ExtendedElementReport> = message.elements.map(
@@ -460,13 +467,13 @@ export default class BackgroundProgram {
           pendingFrames.lastStartWaitTimestamp = Date.now();
           this.setTimeout(info.tabId, t.FRAME_REPORT_TIMEOUT.value);
         }
-        break;
+        return undefined;
       }
 
       case "ReportUpdatedElements": {
         const { hintsState } = tabState;
         if (hintsState.type !== "Hinting") {
-          return;
+          return undefined;
         }
 
         const updatedElementsWithHints = mergeElements(
@@ -535,7 +542,7 @@ export default class BackgroundProgram {
 
           this.setTimeout(info.tabId, timeout);
         }
-        break;
+        return undefined;
       }
 
       case "ReportTextRects":
@@ -547,7 +554,7 @@ export default class BackgroundProgram {
           },
           { tabId: info.tabId }
         );
-        break;
+        return undefined;
 
       // When clicking a link using the extension that causes a page load (no
       // `.preventDefault()`, no internal fragment identifier, no `javascript:`
@@ -562,7 +569,7 @@ export default class BackgroundProgram {
           // highlighted.
           this.exitHintsMode({ tabId: info.tabId, delayed: true });
         }
-        break;
+        return undefined;
       }
 
       // If the user clicks a link while hints mode is active, exit it.
@@ -577,7 +584,7 @@ export default class BackgroundProgram {
         if (hintsState.type !== "Idle") {
           this.exitHintsMode({ tabId: info.tabId, sendMessages: false });
         }
-        break;
+        return undefined;
       }
 
       // When clicking the back button In Firefox, the content scripts of the
@@ -594,17 +601,14 @@ export default class BackgroundProgram {
           tabId: info.tabId,
           frameId: "all_frames",
         });
-        break;
+        return undefined;
 
       case "OpenNewTabs":
         if (BROWSER === "firefox") {
           openNewTabs(info.tabId, message.urls);
         }
 
-        break;
-
-      default:
-        unreachable(message.type, message);
+        return undefined;
     }
   }
 
@@ -616,13 +620,13 @@ export default class BackgroundProgram {
   // from where or in which state `onTimeout` is called, it should always do the
   // correct thing. This means that we never have to clear any timeouts, which
   // is very tricky to keep track of.
-  setTimeout(tabId: number, duration: number) {
+  setTimeout(tabId: number, duration: number): void {
     setTimeout(() => {
       return this.onTimeout(tabId);
     }, duration);
   }
 
-  onTimeout(tabId: number) {
+  onTimeout(tabId: number): void {
     this.updateBadge(tabId);
     this.maybeStartHinting(tabId);
     this.updateElements(tabId);
@@ -640,8 +644,8 @@ export default class BackgroundProgram {
     allElementsWithHints: Array<ElementWithHint>;
     words: Array<string>;
     tabId: number;
-  }) {
-    const indexesByFrame: Map<number, Array<number>> = new Map();
+  }): void {
+    const indexesByFrame = new Map<number, Array<number>>();
     for (const { text, hint, frame } of allElementsWithHints) {
       const previous = indexesByFrame.get(frame.id) || [];
       indexesByFrame.set(frame.id, previous);
@@ -1019,14 +1023,10 @@ export default class BackgroundProgram {
           }
         );
         return true;
-
-      default:
-        unreachable(mode);
-        return true;
     }
   }
 
-  refreshHintsRendering(tabId: number) {
+  refreshHintsRendering(tabId: number): void {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
       return;
@@ -1174,7 +1174,10 @@ export default class BackgroundProgram {
       elementKeys.has(elementKey(element))
     );
 
-    const updateIndex = ({ element, sinceTimestamp }, index) => ({
+    const updateIndex = (
+      { element, sinceTimestamp }: HighlightedItem,
+      index: number
+    ) => ({
       element: { ...element, index },
       sinceTimestamp,
     });
@@ -1365,7 +1368,7 @@ export default class BackgroundProgram {
     message: FromRenderer,
     info: MessageInfo,
     tabState: TabState
-  ) {
+  ): undefined {
     switch (message.type) {
       case "RendererScriptAdded":
         this.sendRendererMessage(
@@ -1402,7 +1405,7 @@ export default class BackgroundProgram {
               message
             );
           });
-        break;
+        return undefined;
 
       case "Rendered": {
         const { hintsState } = tabState;
@@ -1428,29 +1431,27 @@ export default class BackgroundProgram {
           type: "PerfUpdate",
           perf: { [info.tabId]: tabState.perf },
         });
-        break;
+        return undefined;
       }
-
-      default:
-        unreachable(message.type, message);
     }
   }
 
-  async onPopupMessage(message: FromPopup) {
+  async onPopupMessage(message: FromPopup): Promise<undefined> {
     switch (message.type) {
       case "PopupScriptAdded": {
         const tab = await getCurrentTab();
+        if (tab.id === undefined) {
+          return undefined;
+        }
+
         const tabState = this.tabState.get(tab.id);
         this.sendPopupMessage({
           type: "Init",
           logLevel: log.level,
           isEnabled: tabState != null,
         });
-        break;
+        return undefined;
       }
-
-      default:
-        unreachable(message.type, message);
     }
   }
 
@@ -1458,7 +1459,7 @@ export default class BackgroundProgram {
     message: FromOptions,
     info: MessageInfo,
     tabState: TabState
-  ) {
+  ): Promise<undefined> {
     switch (message.type) {
       case "OptionsScriptAdded": {
         tabState.isOptionsPage = true;
@@ -1475,18 +1476,18 @@ export default class BackgroundProgram {
           ])
         );
         this.sendOptionsMessage({ type: "PerfUpdate", perf });
-        break;
+        return undefined;
       }
 
       case "SaveOptions":
         await this.saveOptions(message.partialOptions);
         this.updateTabsAfterOptionsChange();
-        break;
+        return undefined;
 
       case "ResetOptions":
         await this.resetOptions();
         this.updateTabsAfterOptionsChange();
-        break;
+        return undefined;
 
       case "ResetPerf":
         for (const tabState2 of this.tabState.values()) {
@@ -1495,7 +1496,7 @@ export default class BackgroundProgram {
         if (!PROD) {
           await browser.storage.local.remove("perf");
         }
-        break;
+        return undefined;
 
       case "ToggleKeyboardCapture":
         tabState.keyboardMode = message.capture
@@ -1505,10 +1506,7 @@ export default class BackgroundProgram {
           tabId: info.tabId,
           frameId: "all_frames",
         });
-        break;
-
-      default:
-        unreachable(message.type, message);
+        return undefined;
     }
   }
 
@@ -1516,7 +1514,7 @@ export default class BackgroundProgram {
     action: KeyboardAction,
     info: MessageInfo,
     timestamp: number
-  ) {
+  ): undefined {
     const enterHintsMode = (mode: HintsMode) => {
       this.enterHintsMode({
         tabId: info.tabId,
@@ -1528,31 +1526,31 @@ export default class BackgroundProgram {
     switch (action) {
       case "EnterHintsMode_Click":
         enterHintsMode("Click");
-        break;
+        return undefined;
 
       case "EnterHintsMode_BackgroundTab":
         enterHintsMode("BackgroundTab");
-        break;
+        return undefined;
 
       case "EnterHintsMode_ForegroundTab":
         enterHintsMode("ForegroundTab");
-        break;
+        return undefined;
 
       case "EnterHintsMode_ManyClick":
         enterHintsMode("ManyClick");
-        break;
+        return undefined;
 
       case "EnterHintsMode_ManyTab":
         enterHintsMode("ManyTab");
-        break;
+        return undefined;
 
       case "EnterHintsMode_Select":
         enterHintsMode("Select");
-        break;
+        return undefined;
 
       case "ExitHintsMode":
         this.exitHintsMode({ tabId: info.tabId });
-        break;
+        return undefined;
 
       case "RotateHintsForward":
         this.sendRendererMessage(
@@ -1562,7 +1560,7 @@ export default class BackgroundProgram {
           },
           { tabId: info.tabId }
         );
-        break;
+        return undefined;
 
       case "RotateHintsBackward":
         this.sendRendererMessage(
@@ -1572,17 +1570,17 @@ export default class BackgroundProgram {
           },
           { tabId: info.tabId }
         );
-        break;
+        return undefined;
 
       case "RefreshHints": {
         const tabState = this.tabState.get(info.tabId);
         if (tabState == null) {
-          return;
+          return undefined;
         }
 
         const { hintsState } = tabState;
         if (hintsState.type !== "Hinting") {
-          return;
+          return undefined;
         }
 
         // Refresh `oneTimeWindowMessageToken`.
@@ -1592,18 +1590,18 @@ export default class BackgroundProgram {
         });
 
         enterHintsMode(hintsState.mode);
-        break;
+        return undefined;
       }
 
       case "TogglePeek": {
         const tabState = this.tabState.get(info.tabId);
         if (tabState == null) {
-          return;
+          return undefined;
         }
 
         const { hintsState } = tabState;
         if (hintsState.type !== "Hinting") {
-          return;
+          return undefined;
         }
 
         this.sendRendererMessage(
@@ -1612,7 +1610,7 @@ export default class BackgroundProgram {
         );
 
         hintsState.peeking = !hintsState.peeking;
-        break;
+        return undefined;
       }
 
       case "Escape":
@@ -1621,35 +1619,32 @@ export default class BackgroundProgram {
           { type: "Escape" },
           { tabId: info.tabId, frameId: "all_frames" }
         );
-        break;
+        return undefined;
 
       case "ActivateHint":
         this.handleHintInput(info.tabId, timestamp, {
           type: "ActivateHint",
           alt: false,
         });
-        break;
+        return undefined;
 
       case "ActivateHintAlt":
         this.handleHintInput(info.tabId, timestamp, {
           type: "ActivateHint",
           alt: true,
         });
-        break;
+        return undefined;
 
       case "Backspace":
         this.handleHintInput(info.tabId, timestamp, { type: "Backspace" });
-        break;
+        return undefined;
 
       case "ReverseSelection":
         this.sendWorkerMessage(
           { type: "ReverseSelection" },
           { tabId: info.tabId, frameId: "all_frames" }
         );
-        break;
-
-      default:
-        unreachable(action);
+        return undefined;
     }
   }
 
@@ -1661,7 +1656,7 @@ export default class BackgroundProgram {
     tabId: number;
     timestamp: number;
     mode: HintsMode;
-  }) {
+  }): void {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
       return;
@@ -1713,7 +1708,7 @@ export default class BackgroundProgram {
     tabId: number;
     delayed?: boolean;
     sendMessages?: boolean;
-  }) {
+  }): void {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
       return;
@@ -1742,7 +1737,7 @@ export default class BackgroundProgram {
     this.updateBadge(tabId);
   }
 
-  unhighlightHints(tabId: number) {
+  unhighlightHints(tabId: number): undefined {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
       return;
@@ -1788,24 +1783,21 @@ export default class BackgroundProgram {
         } else {
           hideDoneWaiting();
         }
-        break;
+        return undefined;
 
       case "Collecting":
         hideDoneWaiting();
-        break;
+        return undefined;
 
       case "Hinting": {
         hideDoneWaiting();
         this.refreshHintsRendering(tabId);
-        break;
+        return undefined;
       }
-
-      default:
-        unreachable(hintsState.type, hintsState);
     }
   }
 
-  stopPreventOvertyping(tabId: number) {
+  stopPreventOvertyping(tabId: number): void {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
       return;
@@ -1825,15 +1817,20 @@ export default class BackgroundProgram {
     }
   }
 
-  onTabCreated(tab: Tab) {
-    this.updateIcon(tab.id);
+  onTabCreated(tab: browser.tabs.Tab): void {
+    if (tab.id !== undefined) {
+      this.updateIcon(tab.id);
+    }
   }
 
-  onTabActivated() {
+  onTabActivated(): void {
     this.updateOptionsPageData();
   }
 
-  onTabUpdated(tabId: number, changeInfo: TabChangeInfo) {
+  onTabUpdated(
+    tabId: number,
+    changeInfo: { status?: string; pinned?: boolean }
+  ): void {
     if (changeInfo.status != null) {
       this.updateIcon(tabId);
     }
@@ -1853,11 +1850,11 @@ export default class BackgroundProgram {
     }
   }
 
-  onTabRemoved(tabId: number) {
+  onTabRemoved(tabId: number): void {
     this.deleteTabState(tabId);
   }
 
-  deleteTabState(tabId: number) {
+  deleteTabState(tabId: number): void {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
       return;
@@ -1875,7 +1872,7 @@ export default class BackgroundProgram {
     this.updateOptionsPageData();
   }
 
-  async updateIcon(tabId: number) {
+  async updateIcon(tabId: number): Promise<void> {
     // In Chrome the below check fails for the extension options page, so check
     // for the options page explicitly.
     const tabState = this.tabState.get(tabId);
@@ -1900,7 +1897,7 @@ export default class BackgroundProgram {
     await browser.browserAction.setIcon({ path: icons, tabId });
   }
 
-  updateBadge(tabId: number) {
+  updateBadge(tabId: number): void {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
       return;
@@ -1914,7 +1911,9 @@ export default class BackgroundProgram {
     });
   }
 
-  async updateOptions({ isInitial = false }: { isInitial?: boolean } = {}) {
+  async updateOptions({
+    isInitial = false,
+  }: { isInitial?: boolean } = {}): Promise<void> {
     if (!PROD) {
       if (isInitial) {
         const defaultStorageSync = DEFAULT_STORAGE_SYNC;
@@ -2034,14 +2033,14 @@ export default class BackgroundProgram {
       isPinned: tabState.isPinned,
     };
 
-    const getKeyboardShortcuts = (shortcuts) =>
+    const getKeyboardShortcuts = (shortcuts: Array<KeyboardMapping>) =>
       tabState.keyboardMode.type === "PreventOverTyping"
         ? shortcuts.filter((shortcut) =>
             PREVENT_OVERTYPING_ALLOWED_KEYBOARD_ACTIONS.has(shortcut.action)
           )
         : shortcuts;
 
-    const getKeyboardMode = (mode) =>
+    const getKeyboardMode = (mode: KeyboardModeWorker) =>
       tabState.keyboardMode.type === "FromHintsState"
         ? mode
         : tabState.keyboardMode.type;
@@ -2077,7 +2076,7 @@ export default class BackgroundProgram {
   }: {
     tabId: number;
     preventOverTyping: boolean;
-  }) {
+  }): void {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
       return;
@@ -2097,7 +2096,7 @@ export default class BackgroundProgram {
     });
   }
 
-  async updateOptionsPageData() {
+  async updateOptionsPageData(): Promise<void> {
     if (!PROD) {
       const optionsTabState = Array.from(this.tabState).filter(
         ([, tabState]) => tabState.isOptionsPage
@@ -2122,7 +2121,7 @@ export default class BackgroundProgram {
     }
   }
 
-  async maybeOpenTutorial() {
+  async maybeOpenTutorial(): Promise<void> {
     const { tutorialShown } = await browser.storage.local.get("tutorialShown");
     if (tutorialShown !== true) {
       await browser.tabs.create({
@@ -2133,21 +2132,21 @@ export default class BackgroundProgram {
     }
   }
 
-  async maybeReopenOptions() {
+  async maybeReopenOptions(): Promise<void> {
     if (!PROD) {
       const { optionsPage } = await browser.storage.local.get("optionsPage");
       if (typeof optionsPage === "boolean") {
         const isActive = optionsPage;
-        const activeTab = await getCurrentTab;
+        const activeTab = await getCurrentTab();
         await browser.runtime.openOptionsPage();
-        if (!isActive) {
+        if (!isActive && activeTab.id !== undefined) {
           await browser.tabs.update(activeTab.id, { active: true });
         }
       }
     }
   }
 
-  async restoreTabsPerf() {
+  async restoreTabsPerf(): Promise<void> {
     if (!PROD) {
       try {
         const { perf } = await browser.storage.local.get("perf");
@@ -2215,9 +2214,6 @@ function getElementTypes(mode: HintsMode): ElementTypes {
 
     case "Select":
       return "selectable";
-
-    default:
-      return unreachable(mode);
   }
 }
 
@@ -2262,25 +2258,37 @@ function shouldCombineHintsForClick(element: ElementWithHint): boolean {
   return url != null && !url.includes("#") && !hasClickListener;
 }
 
-function runContentScripts(tabs: Array<Tab>): Promise<Array<Array<unknown>>> {
+function runContentScripts(
+  tabs: Array<browser.tabs.Tab>
+): Promise<Array<Array<unknown>>> {
   const manifest = browser.runtime.getManifest();
 
-  const detailsList = manifest.content_scripts
-    .filter((script) => script.matches.includes("<all_urls>"))
-    .flatMap((script) =>
-      script.js.map((file) => ({
-        file,
-        allFrames: script.all_frames,
-        matchAboutBlank: script.match_about_blank,
-        runAt: script.run_at,
-      }))
-    );
+  const detailsList =
+    manifest.content_scripts !== undefined
+      ? manifest.content_scripts
+          .filter((script) => script.matches.includes("<all_urls>"))
+          .flatMap((script) =>
+            script.js !== undefined
+              ? script.js.map((file) => ({
+                  file,
+                  allFrames: script.all_frames,
+                  matchAboutBlank: script.match_about_blank,
+                  runAt: script.run_at,
+                }))
+              : []
+          )
+      : [];
 
   return Promise.all(
     tabs.flatMap((tab) =>
       detailsList.map(async (details) => {
+        if (tab.id === undefined) {
+          return [];
+        }
         try {
-          return await browser.tabs.executeScript(tab.id, details);
+          return (await browser.tabs.executeScript(tab.id, details)).map(
+            (result: unknown) => result
+          );
         } catch {
           // If `executeScript` fails it means that the extension is not
           // allowed to run content scripts in the tab. Example: most
@@ -2292,19 +2300,21 @@ function runContentScripts(tabs: Array<Tab>): Promise<Array<Array<unknown>>> {
   );
 }
 
-function firefoxWorkaround(tabs: Array<Tab>) {
+function firefoxWorkaround(tabs: Array<browser.tabs.Tab>) {
   for (const tab of tabs) {
-    const message: FromBackground = { type: "FirefoxWorkaround" };
-    browser.tabs.sendMessage(tab.id, message).catch(() => {
-      // If `sendMessage` fails it means that there’s no content script
-      // listening in that tab. Example:  `about:` pages (where extensions
-      // are not allowed to run content scripts). We don’t need to do
-      // anything in that case.
-    });
+    if (tab.id !== undefined) {
+      const message: FromBackground = { type: "FirefoxWorkaround" };
+      browser.tabs.sendMessage(tab.id, message).catch(() => {
+        // If `sendMessage` fails it means that there’s no content script
+        // listening in that tab. Example:  `about:` pages (where extensions
+        // are not allowed to run content scripts). We don’t need to do
+        // anything in that case.
+      });
+    }
   }
 }
 
-async function getCurrentTab(): Promise<Tab> {
+async function getCurrentTab(): Promise<browser.tabs.Tab> {
   const tabs = await browser.tabs.query({
     active: true,
     windowId: browser.windows.WINDOW_ID_CURRENT,
@@ -2329,7 +2339,7 @@ async function openNewTabs(tabId: number, urls: Array<string>) {
         })
       )
     );
-    if (newTabs.length >= 2) {
+    if (newTabs.length >= 2 && newTabs[0].id !== undefined) {
       await browser.tabs.update(newTabs[0].id, { active: true });
     }
   } catch (error) {
@@ -2403,9 +2413,6 @@ function getBadgeText(hintsState: HintsState): string {
         )
         .length.toString();
     }
-
-    default:
-      return unreachable(hintsState.type, hintsState);
   }
 }
 
@@ -2423,7 +2430,7 @@ function combineByHref(
   elements: Array<ElementWithHint>,
   mode: HintsMode
 ): Array<Combined | ElementWithHint> {
-  const map: Map<string, Array<ElementWithHint>> = new Map();
+  const map = new Map<string, Array<ElementWithHint>>();
   const rest: Array<ElementWithHint> = [];
 
   for (const element of elements) {

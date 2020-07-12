@@ -17,9 +17,9 @@ export default function Field({
   id: string;
   connected?: boolean;
   fullWidth?: boolean;
-  label: React.VNode;
+  label: React.ComponentChildren;
   span?: boolean;
-  description?: React.VNode;
+  description?: React.ComponentChildren;
   changed: boolean;
   changedRight?: boolean;
   render: ({ id: string }) => React.VNode;
