@@ -1,4 +1,5 @@
-declare type AnyFunction = (...args: Array<unknown>) => unknown;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare type AnyFunction = (...args: Array<any>) => any;
 
 declare type Browser = "chrome" | "firefox";
 

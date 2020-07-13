@@ -31,7 +31,6 @@ import {
   partition,
   Resets,
   splitEnteredText,
-  unreachable,
 } from "../shared/main";
 import type {
   FromBackground,
@@ -231,7 +230,7 @@ export default class BackgroundProgram {
     try {
       await this.updateOptions({ isInitial: true });
     } catch (error) {
-      this.options.errors = [error.message];
+      this.options.errors = [getErrorMessage(error)];
     }
 
     if (!PROD) {
@@ -276,32 +275,35 @@ export default class BackgroundProgram {
     }
   }
 
-  stop() {
+  stop(): void {
     this.resets.reset();
   }
 
   async sendWorkerMessage(
     message: ToWorker,
     { tabId, frameId }: { tabId: number; frameId: number | "all_frames" }
-  ) {
+  ): Promise<void> {
     await this.sendContentMessage(
       { type: "ToWorker", message },
       { tabId, frameId }
     );
   }
 
-  async sendRendererMessage(message: ToRenderer, { tabId }: { tabId: number }) {
+  async sendRendererMessage(
+    message: ToRenderer,
+    { tabId }: { tabId: number }
+  ): Promise<void> {
     await this.sendContentMessage(
       { type: "ToRenderer", message },
       { tabId, frameId: TOP_FRAME_ID }
     );
   }
 
-  async sendPopupMessage(message: ToPopup) {
+  async sendPopupMessage(message: ToPopup): Promise<void> {
     await this.sendBackgroundMessage({ type: "ToPopup", message });
   }
 
-  async sendOptionsMessage(message: ToOptions) {
+  async sendOptionsMessage(message: ToOptions): Promise<void> {
     const optionsTabOpen = Array.from(this.tabState).some(
       ([, tabState]) => tabState.isOptionsPage
     );
@@ -315,14 +317,14 @@ export default class BackgroundProgram {
   // This might seem like sending a message to oneself, but
   // `browser.runtime.sendMessage` seems to only send messages to *other*
   // background scripts, such as the popup script.
-  async sendBackgroundMessage(message: FromBackground) {
+  async sendBackgroundMessage(message: FromBackground): Promise<void> {
     await browser.runtime.sendMessage(message);
   }
 
   async sendContentMessage(
     message: FromBackground,
     { tabId, frameId }: { tabId: number; frameId: number | "all_frames" }
-  ) {
+  ): Promise<void> {
     await (frameId === "all_frames"
       ? browser.tabs.sendMessage(tabId, message)
       : browser.tabs.sendMessage(tabId, message, { frameId }));
@@ -665,7 +667,7 @@ export default class BackgroundProgram {
     }
   }
 
-  handleHintInput(tabId: number, timestamp: number, input: HintInput) {
+  handleHintInput(tabId: number, timestamp: number, input: HintInput): void {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
       return;
@@ -1077,7 +1079,7 @@ export default class BackgroundProgram {
     tabId: number;
     frameId: number;
     foreground: boolean;
-  }) {
+  }): Promise<void> {
     this.sendWorkerMessage(
       {
         type: "FocusElement",
@@ -1115,7 +1117,7 @@ export default class BackgroundProgram {
     }
   }
 
-  maybeStartHinting(tabId: number) {
+  maybeStartHinting(tabId: number): void {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
       return;
@@ -1246,7 +1248,7 @@ export default class BackgroundProgram {
     this.updateBadge(tabId);
   }
 
-  updateElements(tabId: number) {
+  updateElements(tabId: number): void {
     const tabState = this.tabState.get(tabId);
     if (tabState == null) {
       return;
@@ -1295,7 +1297,7 @@ export default class BackgroundProgram {
     }
   }
 
-  hideElements(info: MessageInfo) {
+  hideElements(info: MessageInfo): void {
     const tabState = this.tabState.get(info.tabId);
     if (tabState == null) {
       return;
@@ -1957,7 +1959,7 @@ export default class BackgroundProgram {
     log.level = options.logLevel;
   }
 
-  async saveOptions(partialOptions: PartialOptions) {
+  async saveOptions(partialOptions: PartialOptions): Promise<void> {
     // The options are stored flattened to increase the chance of the browser
     // sync not overwriting things when options has changed from multiple
     // places. This means we have to retrieve the whole storage, unflatten it,
@@ -1980,20 +1982,20 @@ export default class BackgroundProgram {
       await browser.storage.sync.set(optionsToSet);
       await this.updateOptions();
     } catch (error) {
-      this.options.errors = [error.message];
+      this.options.errors = [getErrorMessage(error)];
     }
   }
 
-  async resetOptions() {
+  async resetOptions(): Promise<void> {
     try {
       await browser.storage.sync.clear();
       await this.updateOptions();
     } catch (error) {
-      this.options.errors = [error.message];
+      this.options.errors = [getErrorMessage(error)];
     }
   }
 
-  updateTabsAfterOptionsChange() {
+  updateTabsAfterOptionsChange(): void {
     this.sendOptionsMessage({
       type: "StateSync",
       logLevel: log.level,
@@ -2447,9 +2449,10 @@ function combineByHref(
     }
   }
 
-  return Array.from(map.values())
-    .map((children) => new Combined(children))
-    .concat(rest);
+  return [
+    ...Array.from(map.values(), (children) => new Combined(children)),
+    ...rest,
+  ];
 }
 
 function assignHints(
@@ -2518,7 +2521,7 @@ function assignHints(
 function makeMessageInfo(
   sender: browser.runtime.MessageSender
 ): MessageInfo | undefined {
-  return sender.tab != null && sender.frameId != null
+  return sender.tab != null && sender.tab.id != null && sender.frameId != null
     ? { tabId: sender.tab.id, frameId: sender.frameId, url: sender.url }
     : undefined;
 }
@@ -2561,7 +2564,9 @@ function updateHints({
 }): {
   elementsWithHints: Array<ElementWithHint>;
   allElementsWithHints: Array<ElementWithHint>;
-  match: ?{ elementWithHint: ElementWithHint; autoActivated: boolean };
+  match:
+    | { elementWithHint: ElementWithHint; autoActivated: boolean }
+    | undefined;
   updates: Array<HintUpdate>;
   words: Array<string>;
 } {
@@ -2613,8 +2618,8 @@ function updateHints({
     highlighted.map(({ element }) => elementKey(element))
   );
 
-  const updates: Array<HintUpdate> = elementsWithHintsAndMaybeHidden
-    .map((element, index) => {
+  const updates1: Array<HintUpdate> = elementsWithHintsAndMaybeHidden.map(
+    (element, index) => {
       const matches = element.hint.startsWith(enteredChars);
       const isHighlighted =
         (match != null && element.hint === match.hint) ||
@@ -2624,7 +2629,7 @@ function updateHints({
       return updateMeasurements
         ? {
             // Update the position of the hint.
-            type: "UpdatePosition",
+            type: "UpdatePosition" as const,
             index: element.index,
             order: index,
             hint: element.hint,
@@ -2637,7 +2642,7 @@ function updateHints({
             // Update the hint (which can change based on text filtering),
             // which part of the hint has been matched and whether it
             // should be marked as highlighted/matched.
-            type: "UpdateContent",
+            type: "UpdateContent" as const,
             index: element.index,
             order: index,
             matchedChars: enteredChars,
@@ -2647,19 +2652,19 @@ function updateHints({
           }
         : {
             // Hide hints that don’t match the entered hint chars.
-            type: "Hide",
+            type: "Hide" as const,
             index: element.index,
             hidden: true,
           };
-    })
-    .concat(
-      nonMatching.map((element) => ({
-        // Hide hints for elements filtered by text.
-        type: "Hide",
-        index: element.index,
-        hidden: true,
-      }))
-    );
+    }
+  );
+
+  const updates2: Array<HintUpdate> = nonMatching.map((element) => ({
+    // Hide hints for elements filtered by text.
+    type: "Hide" as const,
+    index: element.index,
+    hidden: true,
+  }));
 
   const allElementsWithHints = elementsWithHintsAndMaybeHidden.concat(
     nonMatching
@@ -2675,7 +2680,7 @@ function updateHints({
             elementWithHint: match,
             autoActivated: autoActivate,
           },
-    updates,
+    updates: updates1.concat(updates2),
     words,
   };
 }
@@ -2727,4 +2732,10 @@ function mergeElements(
 function matchesText(passedText: string, words: Array<string>): boolean {
   const text = passedText.toLowerCase();
   return words.every((word) => text.includes(word));
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error
+    ? error.message
+    : `Unknown error: ${String(error)}`;
 }

@@ -26,7 +26,6 @@ import {
   log,
   NON_WHITESPACE,
   Resets,
-  unreachable,
   walkTextNodes,
 } from "../shared/main";
 import type {
@@ -88,7 +87,7 @@ export default class WorkerProgram {
     ]);
   }
 
-  async start() {
+  async start(): Promise<void> {
     this.resets.add(
       addListener(browser.runtime.onMessage, this.onMessage),
       addEventListener(window, "keydown", this.onKeydown, { passive: false }),
@@ -126,7 +125,7 @@ export default class WorkerProgram {
     await browser.runtime.sendMessage(wrapMessage(message));
   }
 
-  onMessage(wrappedMessage: FromBackground) {
+  onMessage(wrappedMessage: FromBackground): undefined {
     // See `RendererProgram#onMessage`.
     if (wrappedMessage.type === "FirefoxWorkaround") {
       this.sendMessage({ type: "WorkerScriptAdded" });
@@ -154,13 +153,13 @@ export default class WorkerProgram {
         if (message.clearElements) {
           this.current = undefined;
         }
-        break;
+        return undefined;
 
       case "StartFindElements": {
         const { oneTimeWindowMessageToken } = this;
         if (oneTimeWindowMessageToken == null) {
           log("error", "missing oneTimeWindowMessageToken", message);
-          break;
+          return undefined;
         }
         const viewport = getViewport();
         this.reportVisibleElements(
@@ -168,7 +167,7 @@ export default class WorkerProgram {
           [viewport],
           oneTimeWindowMessageToken
         );
-        break;
+        return undefined;
       }
 
       case "UpdateElements": {
@@ -183,7 +182,7 @@ export default class WorkerProgram {
           current,
           oneTimeWindowMessageToken,
         });
-        break;
+        return undefined;
       }
 
       case "GetTextRects": {
@@ -214,7 +213,7 @@ export default class WorkerProgram {
           rects,
         });
 
-        break;
+        return undefined;
       }
 
       case "FocusElement": {
@@ -235,7 +234,7 @@ export default class WorkerProgram {
           element.focus();
         }
 
-        break;
+        return undefined;
       }
 
       case "ClickElement": {
@@ -262,7 +261,7 @@ export default class WorkerProgram {
           this.sendMessage({ type: "ClickedLinkNavigatingToOtherPage" });
         }
 
-        break;
+        return undefined;
       }
 
       case "SelectElement": {
@@ -324,7 +323,7 @@ export default class WorkerProgram {
           }
         }
 
-        break;
+        return undefined;
       }
 
       case "CopyElement": {
@@ -368,7 +367,7 @@ export default class WorkerProgram {
 
         flashElement(element);
 
-        break;
+        return undefined;
       }
 
       // Used instead of `browser.tabs.create` in Chrome, to have the opened tab
@@ -386,7 +385,7 @@ export default class WorkerProgram {
             shiftKey: foreground,
           })
         );
-        break;
+        return undefined;
       }
 
       case "Escape": {
@@ -398,7 +397,7 @@ export default class WorkerProgram {
         if (selection != null) {
           selection.removeAllRanges();
         }
-        break;
+        return undefined;
       }
 
       case "ReverseSelection": {
@@ -406,21 +405,18 @@ export default class WorkerProgram {
         if (selection != null) {
           reverseSelection(selection);
         }
-        break;
+        return undefined;
       }
-
-      default:
-        unreachable(message.type, message);
     }
   }
 
-  onWindowMessage(event: MessageEvent) {
+  onWindowMessage(event: MessageEvent): undefined {
     const { oneTimeWindowMessageToken } = this;
 
     if (
       oneTimeWindowMessageToken != null &&
-      event.data != null &&
       typeof event.data === "object" &&
+      event.data != null &&
       !Array.isArray(event.data) &&
       event.data.token === oneTimeWindowMessageToken &&
       typeof event.data.type === "string"
@@ -436,7 +432,7 @@ export default class WorkerProgram {
           event,
           error
         );
-        return;
+        return undefined;
       }
 
       this.oneTimeWindowMessageToken = undefined;
@@ -450,7 +446,7 @@ export default class WorkerProgram {
             message.viewports,
             oneTimeWindowMessageToken
           );
-          break;
+          return undefined;
 
         case "UpdateElements": {
           const { current } = this;
@@ -463,13 +459,12 @@ export default class WorkerProgram {
             current,
             oneTimeWindowMessageToken,
           });
-          break;
+          return undefined;
         }
-
-        default:
-          unreachable(message.type, message);
       }
     }
+
+    return undefined;
   }
 
   // This is run in the capture phase of the keydown event, overriding any site
@@ -636,7 +631,7 @@ export default class WorkerProgram {
     }
   }
 
-  onPageHide(event: Event) {
+  onPageHide(event: Event): void {
     if (!event.isTrusted) {
       log("log", "WorkerProgram#onPageHide", "ignoring untrusted event", event);
       return;
@@ -648,13 +643,12 @@ export default class WorkerProgram {
     }
   }
 
-  onPageShow(event: Event) {
+  onPageShow(event: Event & { persisted: boolean }): void {
     if (!event.isTrusted) {
       log("log", "WorkerProgram#onPageShow", "ignoring untrusted event", event);
       return;
     }
 
-    // $FlowIgnore: Flow doesn't know about `PageTransitionEvent` yet.
     if (event.persisted) {
       // We have returned to the page via the back/forward buttons.
       this.sendMessage({ type: "PersistedPageShow" });
@@ -1154,7 +1148,7 @@ function suppressEvent(event: Event) {
   // Instead, temporarily remove all accesskeys.
   if (BROWSER === "chrome") {
     const elements = document.querySelectorAll("[accesskey]");
-    const accesskeyMap: Map<HTMLElement, string> = new Map();
+    const accesskeyMap = new Map<Element, string>();
     for (const element of elements) {
       const accesskey = element.getAttribute("accesskey");
       if (accesskey != null) {
@@ -1207,7 +1201,7 @@ function visibleElementToElementReport(
   { index, textContent }: { index: number; textContent: boolean }
 ): ElementReport {
   const text = textContent
-    ? element.textContent
+    ? element.textContent || ""
     : extractTextHelper(element, type);
   return {
     type,
@@ -1368,7 +1362,7 @@ function firefoxPopupBlockerWorkaround({
   }
 
   const resets = new Resets();
-  let linkUrl = undefined;
+  let linkUrl: string | undefined = undefined;
 
   // If the link has `target="_blank"` (or the pinned tab stuff is true), then
   // `event.preventDefault()` must _always_ be called, no matter what. Either
