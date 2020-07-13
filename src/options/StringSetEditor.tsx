@@ -45,7 +45,7 @@ export default function StringSetEditor({
         setHasFocus(true);
       }}
     >
-      {value.concat(endsWithBlank ? [] : [""]).map((item, index) => (
+      {[value, ...(endsWithBlank ? [] : [""])].map((item, index) => (
         <TextInput
           key={index}
           id={index === 0 ? id : undefined}
@@ -56,7 +56,7 @@ export default function StringSetEditor({
               index === value.length
                 ? newItem.trim() === ""
                   ? value
-                  : value.concat(newItem)
+                  : [...value, newItem]
                 : value.map((item2, index2) =>
                     index2 === index ? newItem : item2
                   );

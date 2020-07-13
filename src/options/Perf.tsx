@@ -69,9 +69,12 @@ export default function Perf({
 
         const allStats = perfData.map(({ collectStats }) => collectStats);
         const noFrames = allStats.every((stats) => stats.length === 1);
-        const collectRows = statsToRows(
-          sumStats(noFrames ? "(no frames)" : "total", allStats)
-        ).concat(noFrames ? [] : statsToRows(allStats));
+        const collectRows = [
+          ...statsToRows(
+            sumStats(noFrames ? "(no frames)" : "total", allStats)
+          ),
+          ...(noFrames ? [] : statsToRows(allStats)),
+        ];
 
         const renderData = durationsToRows(
           perfData.map(({ renderDurations }) => renderDurations)
@@ -91,11 +94,10 @@ export default function Perf({
               <button
                 type="button"
                 onClick={() => {
-                  onExpandChange(
-                    expandedPerfTabIds
-                      .filter((id) => id !== tabId)
-                      .concat(expanded ? [] : [tabId])
-                  );
+                  onExpandChange([
+                    ...expandedPerfTabIds.filter((id) => id !== tabId),
+                    ...(expanded ? [] : [tabId]),
+                  ]);
                 }}
               >
                 <span title={`Tab ID: ${tabId}`}>#{tabId}</span>

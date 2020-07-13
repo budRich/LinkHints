@@ -454,7 +454,7 @@ export function importOptions(
     const decoder = makeOptionsDecoder(defaults);
     const decodeErrors: Array<string> = [];
     const newOptions = decoder(unflattened, decodeErrors);
-    const errors = keyErrors.concat(decodeErrors);
+    const errors = [...keyErrors, ...decodeErrors];
     return {
       options: newOptions,
       successCount: Object.keys(flatOptions).length - errors.length,

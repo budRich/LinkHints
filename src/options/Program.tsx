@@ -403,7 +403,7 @@ export default class OptionsProgram extends React.Component<Props, State> {
     }
 
     const { values: options, defaults, mac } = optionsData;
-    const errors = importData.errors.concat(optionsData.errors);
+    const errors = [...importData.errors, ...optionsData.errors];
 
     const usingDefaults =
       deepEqual(defaults, options) && !hasChangedTweakable();
@@ -1578,8 +1578,8 @@ export default class OptionsProgram extends React.Component<Props, State> {
         (code) => !codes.includes(code)
       );
 
-      const results: Array<[UpdateStatus, string, KeyPair]> = codes
-        .map((code) => {
+      const results: Array<[UpdateStatus, string, KeyPair]> = [
+        ...codes.map((code) => {
           const pair = keyTranslations[code];
           const key = layoutMap.get(code);
           if (key == null) {
@@ -1594,17 +1594,16 @@ export default class OptionsProgram extends React.Component<Props, State> {
           return key === pair[0]
             ? ["AlreadyPartiallyUpdated", code, pair]
             : ["PartiallyUpdated", code, [key, "?"]];
-        })
-        .concat(
-          newCodes.flatMap((code) => {
-            const key = layoutMap.get(code);
-            return key == null
-              ? []
-              : isShiftable(key)
-              ? [["FullyUpdated", code, [key, key.toUpperCase()]]]
-              : [["PartiallyUpdated", code, [key, "?"]]];
-          })
-        );
+        }),
+        ...newCodes.flatMap((code) => {
+          const key = layoutMap.get(code);
+          return key == null
+            ? []
+            : isShiftable(key)
+            ? [["FullyUpdated", code, [key, key.toUpperCase()]]]
+            : [["PartiallyUpdated", code, [key, "?"]]];
+        }),
+      ];
 
       function count(updateStatus: UpdateStatus): number {
         return results.filter(

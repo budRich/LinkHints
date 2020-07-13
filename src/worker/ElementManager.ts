@@ -710,7 +710,7 @@ export default class ElementManager {
 
   addEventListener(eventName: string, fn: () => unknown) {
     const previous = this.injectedListeners.get(eventName) || [];
-    this.injectedListeners.set(eventName, previous.concat(fn));
+    this.injectedListeners.set(eventName, [...previous, fn]);
   }
 
   sendInjectedEvent(eventName: string) {

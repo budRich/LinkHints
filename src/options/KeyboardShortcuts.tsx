@@ -200,11 +200,14 @@ export default class KeyboardShortcuts extends React.Component<Props, State> {
     }
   }
 
-  saveMapping(newMapping: KeyboardMapping) {
+  saveMapping(newMapping: KeyboardMapping): void {
     const { mappings, onChange, onAddChange } = this.props;
-    const newMappings = mappings
-      .filter((mapping) => !deepEqual(mapping.shortcut, newMapping.shortcut))
-      .concat(newMapping);
+    const newMappings = [
+      ...mappings.filter(
+        (mapping) => !deepEqual(mapping.shortcut, newMapping.shortcut)
+      ),
+      newMapping,
+    ];
 
     this.setState({
       addingAction: undefined,

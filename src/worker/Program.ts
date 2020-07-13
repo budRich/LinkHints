@@ -700,7 +700,7 @@ export default class WorkerProgram {
           type: "FindElements",
           token: oneTimeWindowMessageToken,
           types,
-          viewports: viewports.concat(getFrameViewport(frame)),
+          viewports: [...viewports, getFrameViewport(frame)],
         };
         frame.contentWindow.postMessage(message, "*");
       }
@@ -758,7 +758,7 @@ export default class WorkerProgram {
           const message: FrameMessage = {
             type: "UpdateElements",
             token: oneTimeWindowMessageToken,
-            viewports: current.viewports.concat(getFrameViewport(frame)),
+            viewports: [...current.viewports, getFrameViewport(frame)],
           };
           frame.contentWindow.postMessage(message, "*");
         }
@@ -1264,9 +1264,10 @@ function extractTextHelper(element: HTMLElement, type: ElementType): string {
   const labels = getLabels(element);
   if (labels != null) {
     return normalizeWhitespace(
-      [extractText(element)]
-        .concat(Array.from(labels, (label) => extractText(label)))
-        .join(" ")
+      [
+        extractText(element),
+        ...Array.from(labels, (label) => extractText(label)),
+      ].join(" ")
     );
   }
 
@@ -1298,7 +1299,7 @@ export function getTextRectsHelper({
   // See `extractTextHelper`.
   const labels = getLabels(element);
   if (labels != null) {
-    return [element].concat(Array.from(labels)).flatMap((element2) =>
+    return [element, ...Array.from(labels)].flatMap((element2) =>
       getTextRects({
         element: element2,
         viewports,

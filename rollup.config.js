@@ -77,8 +77,7 @@ const docs = [
     },
   }));
 
-// $FlowIgnore: Flow wants a type annotation here, but that’s just annoying.
-module.exports = main.concat(docs);
+module.exports = [...main, ...docs];
 
 function setup() {
   console.time("setup");

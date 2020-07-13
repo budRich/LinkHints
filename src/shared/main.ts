@@ -540,7 +540,7 @@ export function deepEqual(a: unknown, b: unknown): boolean {
       return false;
     }
 
-    const keys = new Set(keysA.concat(keysB));
+    const keys = new Set([...keysA, ...keysB]);
 
     for (const key of keys) {
       if (!deepEqual(a[key], b[key])) {

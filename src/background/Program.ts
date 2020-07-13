@@ -753,7 +753,7 @@ export default class BackgroundProgram {
     hintsState.enteredChars = enteredChars;
     hintsState.enteredText = enteredText;
     hintsState.elementsWithHints = allElementsWithHints;
-    hintsState.highlighted = hintsState.highlighted.concat(highlighted);
+    hintsState.highlighted = [...hintsState.highlighted, ...highlighted];
 
     this.getTextRects({
       enteredChars,
@@ -1185,34 +1185,36 @@ export default class BackgroundProgram {
     });
 
     const numElements = elementsWithHints.length;
-    const highlighted = extraHighlighted
+    const highlighted = [
       // Add indexes to the highlighted hints that get extra DOM nodes.
-      .map((item, index) => updateIndex(item, numElements + index))
+      ...extraHighlighted.map((item, index) =>
+        updateIndex(item, numElements + index)
+      ),
       // Other highlighted hints don’t get extra DOM nodes – they instead
       // highlight new hints with the same characters and position. Mark them
       // with an index of -1 for `unhighlightHints`’s sakes.
-      .concat(alreadyHighlighted.map((item) => updateIndex(item, -1)));
+      ...alreadyHighlighted.map((item) => updateIndex(item, -1)),
+    ];
 
-    const elementRenders: Array<ElementRender> = elementsWithHints
-      .map((element, index) => ({
+    const elementRenders: Array<ElementRender> = [
+      ...elementsWithHints.map((element, index) => ({
         hintMeasurements: element.hintMeasurements,
         hint: element.hint,
         // Hints at the same position and with the same hint characters as a
         // previously matched hint are marked as highlighted.
         highlighted: highlightedKeys.has(elementKey(element)),
         invertedZIndex: index + 1,
-      }))
+      })),
       // Other previously matched hints are rendered (but not stored in
       // `hintsState.elementsWithHints`).
-      .concat(
-        extraHighlighted.map(({ element }) => ({
-          hintMeasurements: element.hintMeasurements,
-          hint: element.hint,
-          highlighted: true,
-          // Previously matched hints are always shown on top over regular hints.
-          invertedZIndex: 0,
-        }))
-      );
+      ...extraHighlighted.map(({ element }) => ({
+        hintMeasurements: element.hintMeasurements,
+        hint: element.hint,
+        highlighted: true,
+        // Previously matched hints are always shown on top over regular hints.
+        invertedZIndex: 0,
+      })),
+    ];
 
     tabState.hintsState = {
       type: "Hinting",
@@ -2618,8 +2620,8 @@ function updateHints({
     highlighted.map(({ element }) => elementKey(element))
   );
 
-  const updates1: Array<HintUpdate> = elementsWithHintsAndMaybeHidden.map(
-    (element, index) => {
+  const updates: Array<HintUpdate> = [
+    ...elementsWithHintsAndMaybeHidden.map((element, index) => {
       const matches = element.hint.startsWith(enteredChars);
       const isHighlighted =
         (match != null && element.hint === match.hint) ||
@@ -2656,19 +2658,19 @@ function updateHints({
             index: element.index,
             hidden: true,
           };
-    }
-  );
+    }),
+    ...nonMatching.map((element) => ({
+      // Hide hints for elements filtered by text.
+      type: "Hide" as const,
+      index: element.index,
+      hidden: true,
+    })),
+  ];
 
-  const updates2: Array<HintUpdate> = nonMatching.map((element) => ({
-    // Hide hints for elements filtered by text.
-    type: "Hide" as const,
-    index: element.index,
-    hidden: true,
-  }));
-
-  const allElementsWithHints = elementsWithHintsAndMaybeHidden.concat(
-    nonMatching
-  );
+  const allElementsWithHints = [
+    ...elementsWithHintsAndMaybeHidden,
+    ...nonMatching,
+  ];
 
   return {
     elementsWithHints,
@@ -2680,7 +2682,7 @@ function updateHints({
             elementWithHint: match,
             autoActivated: autoActivate,
           },
-    updates: updates1.concat(updates2),
+    updates,
     words,
   };
 }

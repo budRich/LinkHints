@@ -11,7 +11,7 @@ export default function TestLinks() {
       className="TestLinks SpacedVertical TextSmall"
       onKeyDown={(event: SyntheticKeyboardEvent<HTMLDivElement>) => {
         if (event.key.length === 1) {
-          setKeys(keys.concat(event.key));
+          setKeys([...keys, event.key]);
         }
       }}
       onBlurCapture={() => {
