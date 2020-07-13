@@ -1352,9 +1352,10 @@ function firefoxPopupBlockerWorkaround({
   urlsToOpenInNewTabs: Array<string>;
 } {
   const prefix = "firefoxPopupBlockerWorkaround";
+  const { wrappedJSObject } = window;
 
   // In the Options page, `window.wrappedJSObject` does not exist.
-  if (window.wrappedJSObject == null) {
+  if (wrappedJSObject == null) {
     log("log", prefix, "No window.wrappedJSObject");
     return () => ({
       pagePreventedDefault: undefined,
@@ -1389,8 +1390,13 @@ function firefoxPopupBlockerWorkaround({
     // Default to opening this link in a new tab.
     linkUrl = link.href;
 
-    const override = (method, fn) => {
-      const { prototype } = window.wrappedJSObject.Event;
+    const override = <
+      Method extends "stopImmediatePropagation" | "preventDefault"
+    >(
+      method: Method,
+      fn: (original: Event[Method]) => AnyFunction
+    ): (() => void) => {
+      const { prototype } = wrappedJSObject.Event;
       const original = prototype[method];
       exportFunction(fn(original), prototype, { defineAs: method });
       return () => {
@@ -1430,7 +1436,7 @@ function firefoxPopupBlockerWorkaround({
             target,
             "click",
             // eslint-disable-next-line no-loop-func
-            (event) => {
+            (event: Event) => {
               // We’re already done – just skip remaining listeners.
               if (defaultPrevented !== "NotPrevented") {
                 return;
@@ -1498,8 +1504,7 @@ function firefoxPopupBlockerWorkaround({
       override(
         "stopImmediatePropagation",
         (originalStopImmediatePropagation) =>
-          function stopImmediatePropagation(): unknown {
-            /* eslint-disable babel/no-invalid-this */
+          function stopImmediatePropagation(this: Event): unknown {
             // We’re already done – just skip remaining listeners.
             if (defaultPrevented !== "NotPrevented") {
               return originalStopImmediatePropagation.call(this);
@@ -1534,7 +1539,7 @@ function firefoxPopupBlockerWorkaround({
               override(
                 "preventDefault",
                 (originalPreventDefault) =>
-                  function preventDefault(): unknown {
+                  function preventDefault(this: Event): unknown {
                     log(
                       "log",
                       prefix,
@@ -1548,7 +1553,6 @@ function firefoxPopupBlockerWorkaround({
             );
 
             return originalStopImmediatePropagation.call(this);
-            /* eslint-enable babel/no-invalid-this */
           }
       )
     );
@@ -1559,23 +1563,26 @@ function firefoxPopupBlockerWorkaround({
   // Temporarily override `window.open`. (If the page has overridden
   // `window.open` to something completely different, this breaks down a little.
   // Hopefully that’s rare.)
-  const originalOpen = window.wrappedJSObject.open;
+  const originalOpen = wrappedJSObject.open;
   exportFunction(
     function open(
+      this: unknown,
       url: unknown,
       target: unknown,
       features: unknown,
-      ...args: Array<unknown>
+      replace: unknown
     ): unknown {
       // These may throw exceptions: `{ toString() { throw new Error } }`;
       // If so – let that happen, just like standard `window.open`. If they
       // throw we simply don’t continue.
       // (If using just `String` rather than `window.wrappedJSObject.String`,
       // the errors would not show up in the console.)
-      const toString = window.wrappedJSObject.String;
+      const toString = wrappedJSObject.String;
+      const toBoolean = wrappedJSObject.Boolean;
       const urlString = toString(url);
       const targetString = toString(target);
-      toString(features);
+      const featuresString = toString(features);
+      const replaceBoolean = toBoolean(replace);
 
       if (
         // When clicking something with the mouse, Firefox only allows one
@@ -1598,8 +1605,13 @@ function firefoxPopupBlockerWorkaround({
         return null;
       }
 
-      // eslint-disable-next-line babel/no-invalid-this
-      return originalOpen.call(this, url, target, features, ...args);
+      return originalOpen.call(
+        this,
+        urlString,
+        targetString,
+        featuresString,
+        replaceBoolean
+      );
     },
     window.wrappedJSObject,
     { defineAs: "open" }
@@ -1607,7 +1619,7 @@ function firefoxPopupBlockerWorkaround({
 
   return () => {
     resets.reset();
-    window.wrappedJSObject.open = originalOpen;
+    wrappedJSObject.open = originalOpen;
 
     const result = {
       pagePreventedDefault: shouldWorkaroundLinks
@@ -1627,10 +1639,10 @@ function firefoxPopupBlockerWorkaround({
 function* getAllEventTargetsUpwards(
   fromNode: Node
 ): Generator<EventTarget, void, void> {
-  let node = fromNode;
+  let node: Node | null = fromNode;
   do {
     yield node;
-    const parent = node.parentNode;
+    const parent: Node | null = node.parentNode;
     if (parent instanceof ShadowRoot) {
       yield parent;
       node = parent.host;
@@ -1660,8 +1672,10 @@ function flashElement(element: HTMLElement) {
       element,
       element.matches(selector) ? "contrast(0.5)" : "invert(0.75)"
     ),
-    ...Array.from(element.querySelectorAll(selector), (image) =>
-      temporarilySetFilter(image, "invert(1)")
+    ...Array.from(element.querySelectorAll(selector)).flatMap((image) =>
+      image instanceof HTMLElement
+        ? temporarilySetFilter(image, "invert(1)")
+        : []
     ),
   ];
   for (const { apply } of changes) {

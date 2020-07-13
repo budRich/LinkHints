@@ -2629,42 +2629,45 @@ function updateHints({
         highlightedKeys.has(elementKey(element));
 
       return updateMeasurements
-        ? {
+        ? ({
             // Update the position of the hint.
-            type: "UpdatePosition" as const,
+            type: "UpdatePosition",
             index: element.index,
             order: index,
             hint: element.hint,
             hintMeasurements: element.hintMeasurements,
             highlighted: isHighlighted,
             hidden: element.hidden || !matches,
-          }
+          } as const)
         : matches && (match == null || highlighted)
-        ? {
+        ? ({
             // Update the hint (which can change based on text filtering),
             // which part of the hint has been matched and whether it
             // should be marked as highlighted/matched.
-            type: "UpdateContent" as const,
+            type: "UpdateContent",
             index: element.index,
             order: index,
             matchedChars: enteredChars,
             restChars: element.hint.slice(enteredChars.length),
             highlighted: isHighlighted,
             hidden: element.hidden || !matches,
-          }
-        : {
+          } as const)
+        : ({
             // Hide hints that don’t match the entered hint chars.
-            type: "Hide" as const,
+            type: "Hide",
             index: element.index,
             hidden: true,
-          };
+          } as const);
     }),
-    ...nonMatching.map((element) => ({
-      // Hide hints for elements filtered by text.
-      type: "Hide" as const,
-      index: element.index,
-      hidden: true,
-    })),
+    ...nonMatching.map(
+      (element) =>
+        ({
+          // Hide hints for elements filtered by text.
+          type: "Hide",
+          index: element.index,
+          hidden: true,
+        } as const)
+    ),
   ];
 
   const allElementsWithHints = [

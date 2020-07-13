@@ -7,7 +7,7 @@ import {
   serializeShortcut,
   Shortcut,
 } from "../shared/keyboard";
-import { classlist, deepEqual, unreachable } from "../shared/main";
+import { classlist, deepEqual } from "../shared/main";
 import ButtonWithPopup from "./ButtonWithPopup";
 import Field from "./Field";
 import KeyboardShortcut, { hasShift, viewKey } from "./KeyboardShortcut";

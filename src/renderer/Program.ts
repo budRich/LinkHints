@@ -32,7 +32,6 @@ import {
   partition,
   Resets,
   setStyles,
-  unreachable,
 } from "../shared/main";
 import type {
   FromBackground,
@@ -57,7 +56,7 @@ export const tMeta = tweakable("Renderer", t);
 
 export default class RendererProgram {
   hints: Array<HTMLElement> = [];
-  rects: Map<HTMLElement, ClientRect> = new Map();
+  rects = new Map<HTMLElement, ClientRect>();
   enteredText = "";
   resets: Resets = new Resets();
   shruggieElement: HTMLElement;
@@ -142,7 +141,7 @@ export default class RendererProgram {
     };
   }
 
-  async start() {
+  async start(): Promise<void> {
     // This is useful during development. If reloading the extension during
     // hints mode, the old hints will be removed as soon as the new version
     // starts.
@@ -190,17 +189,17 @@ export default class RendererProgram {
     });
   }
 
-  stop() {
+  stop(): void {
     this.resets.reset();
     this.unrender();
   }
 
-  async sendMessage(message: FromRenderer) {
+  async sendMessage(message: FromRenderer): Promise<void> {
     log("log", "RendererProgram#sendMessage", message.type, message, this);
     await browser.runtime.sendMessage(wrapMessage(message));
   }
 
-  onMessage(wrappedMessage: FromBackground) {
+  onMessage(wrappedMessage: FromBackground): undefined {
     // As mentioned in `this.start`, re-send the "RendererScriptAdded" message
     // in Firefox as a workaround for its content script loading quirks.
     if (wrappedMessage.type === "FirefoxWorkaround") {
@@ -225,44 +224,41 @@ export default class RendererProgram {
         if (BROWSER === "firefox" && this.css.parsed != null && changedCSS) {
           this.css.parsed = parseCSS(this.css.text);
         }
-        break;
+        return undefined;
       }
 
       case "Render":
         this.render(message.elements, { mixedCase: message.mixedCase });
-        break;
+        return undefined;
 
       case "UpdateHints":
         this.updateHints(message.updates, message.enteredText);
-        break;
+        return undefined;
 
       case "RotateHints":
         this.rotateHints({ forward: message.forward });
-        break;
+        return undefined;
 
       case "RenderTextRects":
         this.unrenderTextRects(message.frameId);
         this.renderTextRects(message.rects, message.frameId);
-        break;
+        return undefined;
 
       case "Peek":
         this.togglePeek({ peek: true });
-        break;
+        return undefined;
 
       case "Unpeek":
         this.togglePeek({ peek: false });
-        break;
+        return undefined;
 
       case "Unrender":
         this.unrender();
-        break;
-
-      default:
-        unreachable(message.type, message);
+        return undefined;
     }
   }
 
-  onIntersection(entries: Array<IntersectionObserverEntry>) {
+  onIntersection(entries: Array<IntersectionObserverEntry>): void {
     // There will only be one entry.
     const entry = entries[0];
     if (entry.intersectionRatio !== 1) {
@@ -271,13 +267,15 @@ export default class RendererProgram {
           // `entry.rootBounds` is supposed to be the viewport size, but I've
           // noticed it being way larger in Chrome sometimes, so calculate it
           // manually there.
-          BROWSER === "chrome" ? getViewport() : entry.rootBounds
+          BROWSER === "chrome"
+            ? getViewport()
+            : entry.rootBounds || getViewport()
         );
       });
     }
   }
 
-  onResize() {
+  onResize(): void {
     this.updateContainer(getViewport());
   }
 
@@ -290,14 +288,13 @@ export default class RendererProgram {
   // `WorkerProgram`, so we _could_ do this in response to a message from
   // `BackgroundProgram` instead. However, by having our own listener we can
   // unrender faster, to avoid old hints flashing by on screen.
-  onPageShow(event: Event) {
-    // $FlowIgnore: Flow doesn't know about `PageTransitionEvent` yet.
+  onPageShow(event: PageTransitionEvent): void {
     if (event.persisted) {
       this.unrender();
     }
   }
 
-  updateContainer(viewport: { width: number; height: number }) {
+  updateContainer(viewport: { width: number; height: number }): void {
     const container = this.container.element;
 
     setStyles(container, {
@@ -319,7 +316,7 @@ export default class RendererProgram {
     }
   }
 
-  updateHintSize() {
+  updateHintSize(): void {
     // Note: This requires that the container has been placed into the DOM.
     const { root } = this.container;
 
@@ -353,7 +350,7 @@ export default class RendererProgram {
   async render(
     elements: Array<ElementRender>,
     { mixedCase }: { mixedCase: boolean }
-  ) {
+  ): Promise<void> {
     const { documentElement } = document;
     if (documentElement == null) {
       return;
@@ -616,7 +613,7 @@ export default class RendererProgram {
     this.enteredText = enteredText;
   }
 
-  rotateHints({ forward }: { forward: boolean }) {
+  rotateHints({ forward }: { forward: boolean }): void {
     const sign = forward ? 1 : -1;
     const stacks = getStacks(this.hints, this.rects);
     for (const stack of stacks) {
@@ -640,7 +637,7 @@ export default class RendererProgram {
     }
   }
 
-  renderTextRects(rects: Array<Box>, frameId: number) {
+  renderTextRects(rects: Array<Box>, frameId: number): void {
     const { root } = this.container;
     for (const rect of rects) {
       const element = document.createElement("div");
@@ -658,7 +655,7 @@ export default class RendererProgram {
     }
   }
 
-  setStatus(status: string) {
+  setStatus(status: string): void {
     // Avoid unnecessary flashing in the devtools when inspecting the hints.
     if (this.statusText.data !== status) {
       this.statusText.data = status;
@@ -666,13 +663,13 @@ export default class RendererProgram {
     this.maybeApplyStyles(this.statusElement);
   }
 
-  togglePeek({ peek }: { peek: boolean }) {
+  togglePeek({ peek }: { peek: boolean }): void {
     const { root } = this.container;
     root.classList.toggle(PEEK_CLASS, peek);
     this.maybeApplyStyles(root);
   }
 
-  unrender() {
+  unrender(): void {
     this.hints = [];
     this.rects.clear();
 
@@ -693,7 +690,7 @@ export default class RendererProgram {
     }
   }
 
-  unrenderTextRects(frameId?: number) {
+  unrenderTextRects(frameId?: number): void {
     const selector =
       frameId == null
         ? `.${TEXT_RECT_CLASS}`
@@ -705,7 +702,7 @@ export default class RendererProgram {
 
   // It’s important to use `setStyles` instead of `.style.foo =` in this file,
   // since `applyStyles` could override inline styles otherwise.
-  maybeApplyStyles(element: HTMLElement) {
+  maybeApplyStyles(element: HTMLElement): void {
     if (BROWSER === "firefox" && this.css.parsed != null) {
       applyStyles(element, this.css.parsed);
     }
@@ -776,7 +773,10 @@ function getStacks(
   const stacks = [];
 
   while (elements.length > 0) {
-    stacks.push(getStackFor(elements.pop(), elements, rects));
+    const element = elements.pop();
+    if (element !== undefined) {
+      stacks.push(getStackFor(element, elements, rects));
+    }
   }
 
   return stacks;

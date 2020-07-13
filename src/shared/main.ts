@@ -31,7 +31,7 @@ export const DEFAULT_LOG_LEVEL: LogLevel = PROD
   ? "warn"
   : decodeLogLevel(DEFAULT_LOG_LEVEL_CONFIG);
 
-export function log(level: LogLevel, ...args: Array<unknown>) {
+export function log(level: LogLevel, ...args: Array<unknown>): void {
   if (LOG_LEVELS[level] > LOG_LEVELS[log.level]) {
     return;
   }
@@ -101,7 +101,7 @@ Example:
     }
 */
 export function bind(
-  object: unknown,
+  object: any,
   methods: Array<Method | [Method, { log?: boolean; catch?: boolean }]>
 ): void {
   for (const item of methods) {
@@ -460,29 +460,36 @@ export function getElementFromPoint(
   element: HTMLElement,
   x: number,
   y: number
-): HTMLElement | undefined {
+): Element | undefined {
   const root = element.getRootNode();
   const doc =
     root instanceof Document || root instanceof ShadowRoot ? root : document;
-  // $FlowIgnore: Flow doesn’t know that `ShadowRoot` has `.elementFromPoint` yet.
-  return doc.elementFromPoint(x, y);
+  return doc.elementFromPoint(x, y) || undefined;
 }
 
 export function getElementsFromPoint(
   element: HTMLElement,
   x: number,
   y: number
-): Array<HTMLElement> {
+): Array<Element> {
   const root = element.getRootNode();
   const doc =
     root instanceof Document || root instanceof ShadowRoot ? root : document;
-  // $FlowIgnore: Flow doesn’t know that `ShadowRoot` has `.elementsFromPoint` yet.
   return doc.elementsFromPoint(x, y);
 }
 
-export function getLabels(element: HTMLElement): NodeList | undefined {
-  // $FlowIgnore: Only some types of elements have `.labels`, and I'm not going to `instanceof` check them all.
-  return element.labels instanceof NodeList ? element.labels : undefined;
+export function getLabels(
+  element: HTMLElement
+): NodeListOf<HTMLLabelElement> | undefined {
+  return element instanceof HTMLButtonElement ||
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLMeterElement ||
+    element instanceof HTMLOutputElement ||
+    element instanceof HTMLProgressElement ||
+    element instanceof HTMLSelectElement ||
+    element instanceof HTMLTextAreaElement
+    ? element.labels || undefined
+    : undefined;
 }
 
 export function classlist(

@@ -32,9 +32,3 @@ declare function exportFunction(
 ): AnyFunction;
 
 declare function XPCNativeWrapper<T>(x: T): T;
-
-declare global {
-  interface Window {
-    wrappedJSObject?: Window;
-  }
-}
