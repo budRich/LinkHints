@@ -497,25 +497,18 @@ export default class RendererProgram {
     });
   }
 
-  updateHints(updates: Array<HintUpdate>, enteredText: string) {
+  updateHints(updates: Array<HintUpdate>, enteredText: string): void {
     const viewport = getViewport();
-    const maybeNeedsMoveInsideViewport = [];
+    const maybeNeedsMoveInsideViewport: Array<HTMLElement> = [];
 
-    for (const update of updates) {
-      const child = this.hints[update.index];
-
-      if (child == null) {
-        log("error", "RendererProgram#updateHints: missing child", update);
-        continue;
-      }
-
+    const updateChild = (update: HintUpdate, child: HTMLElement): undefined => {
       // Remember that `HIDDEN_CLASS` just sets `opacity: 0`, so rects will
       // still be available. If that opacity is customized, the chars and
       // position should still be correct.
       switch (update.type) {
         case "Hide":
           child.classList.add(HIDDEN_CLASS);
-          break;
+          return undefined;
 
         case "UpdateContent": {
           // Avoid unnecessary flashing in the devtools when inspecting the hints.
@@ -560,7 +553,7 @@ export default class RendererProgram {
             );
           }
 
-          break;
+          return undefined;
         }
 
         case "UpdatePosition": {
@@ -582,12 +575,20 @@ export default class RendererProgram {
             setStyles(child, styles);
             maybeNeedsMoveInsideViewport.push(child);
           }
-          break;
+          return undefined;
         }
-
-        default:
-          unreachable(update.type, update);
       }
+    };
+
+    for (const update of updates) {
+      const child = this.hints[update.index];
+
+      if (child == null) {
+        log("error", "RendererProgram#updateHints: missing child", update);
+        continue;
+      }
+
+      updateChild(update, child);
 
       // Hidden hints get negative z-index so that visible hints are always
       // shown on top.
