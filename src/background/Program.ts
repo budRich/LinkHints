@@ -25,6 +25,7 @@ import {
   addListener,
   bind,
   CONTAINER_ID,
+  getErrorMessage,
   isMixedCase,
   log,
   makeRandomToken,
@@ -2737,10 +2738,4 @@ function mergeElements(
 function matchesText(passedText: string, words: Array<string>): boolean {
   const text = passedText.toLowerCase();
   return words.every((word) => text.includes(word));
-}
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error
-    ? error.message
-    : `Unknown error: ${String(error)}`;
 }

@@ -600,3 +600,9 @@ export function normalizeUnsignedFloat(
     Number.isFinite(parsed) && parsed >= 0 ? parsed : defaultValue;
   return defaulted.toString();
 }
+
+export function getErrorMessage(error: unknown): string {
+  return error instanceof Error
+    ? error.message
+    : `Unknown error: ${String(error)}`;
+}

@@ -25,6 +25,7 @@ import {
   decodeUnsignedInt,
   deepEqual,
   DEFAULT_LOG_LEVEL,
+  getErrorMessage,
   LogLevel,
 } from "./main";
 
@@ -50,7 +51,7 @@ export type Options = {
 
 export type PartialOptions = Partial<Options>;
 
-export type FlatOptions = { [Key: string]: unknown };
+export type FlatOptions = { [key: string]: unknown };
 
 export function makeOptionsDecoder(defaults: Options): Decoder<Options> {
   return fields((field) => ({
@@ -137,7 +138,7 @@ export function getDefaults({ mac }: { mac: boolean }): Options {
     cmd = false,
     ctrl = false,
     shift = false,
-  }: Partial<Shortcut>): Shortcut {
+  }: Partial<Shortcut> & { key: string }): Shortcut {
     return { key, alt, cmd, ctrl, shift };
   }
 
@@ -315,7 +316,7 @@ const PREFIX_REGEX = /([^.]+)\.([^]*)/;
 // This takes a flat object and turns it into an object that can be fed to
 // `makeOptionsDecoder`.
 export function unflattenOptions(object: FlatOptions): FlatOptions {
-  const options = {};
+  const options: FlatOptions = {};
 
   function set(parent: string, key: string, value: unknown) {
     if (!(typeof options[parent] === "object" && options[parent] != null)) {
@@ -378,8 +379,8 @@ export function diffOptions(
   fullOptions: FlatOptions,
   saved: FlatOptions
 ): { keysToRemove: Array<string>; optionsToSet: FlatOptions } {
-  const keysToRemove = [];
-  const optionsToSet = {};
+  const keysToRemove: Array<string> = [];
+  const optionsToSet: FlatOptions = {};
 
   // `defaults` and `fullOptions` have some keys in common. `fullOptions` might
   // have removed some keys present in `defaults`, and added some new ones. If
@@ -464,7 +465,7 @@ export function importOptions(
     return {
       options: undefined,
       successCount: 0,
-      errors: [`The file is invalid: ${error.message}`],
+      errors: [`The file is invalid: ${getErrorMessage(error)}`],
     };
   }
 }
