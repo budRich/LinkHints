@@ -33,6 +33,7 @@ import {
   classlist,
   decodeLogLevel,
   deepEqual,
+  isUnknownDict,
   log,
   LOG_LEVELS,
   normalizeUnsignedInt,
@@ -331,7 +332,7 @@ export default class OptionsProgram extends React.Component<Props, State> {
     try {
       const file = await selectFile("application/json");
       const data = await readAsJson(file);
-      const [tweakableData, otherData] = partitionTweakable(mixedObject(data));
+      const [tweakableData, otherData] = partitionTweakable(unknownDict(data));
       const { options: newOptions, successCount, errors } = importOptions(
         otherData,
         options,
@@ -1731,8 +1732,8 @@ function readAsJson(file: File): Promise<unknown> {
   return new Response(file).json();
 }
 
-function mixedObject(value: unknown): { [key: string]: unknown } {
-  if (typeof value !== "object" || value == null || Array.isArray(value)) {
+function unknownDict(value: unknown): { [key: string]: unknown } {
+  if (!isUnknownDict(value)) {
     throw new TypeError(`Expected an object, but got: ${repr(value)}`);
   }
   return value;

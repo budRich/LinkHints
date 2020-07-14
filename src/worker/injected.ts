@@ -110,7 +110,7 @@ export default (communicator?: {
   };
 
   class HookManager {
-    fnMap: Map<AnyFunction, AnyFunction> = new Map();
+    fnMap = new Map<AnyFunction, AnyFunction>();
     resetFns: Array<AnyFunction> = [];
 
     reset() {
@@ -146,8 +146,12 @@ export default (communicator?: {
         ...args: Array<any>
       ) => any,
       prehook?: (...args: Array<any>) => T
-    ) {
+    ): void {
       const descriptor = Reflect.getOwnPropertyDescriptor(obj, name);
+      if (descriptor === undefined) {
+        return;
+      }
+
       const prop = "value" in descriptor ? "value" : "set";
       const originalFn = descriptor[prop];
 
@@ -745,6 +749,11 @@ export default (communicator?: {
       : { type: "Document" };
   }
 
+  // Unlike the version in shared/main.ts, this one allows arrays as well.
+  function isUnknownDict(value: unknown): value is { [key: string]: unknown } {
+    return typeof value === "object" && value !== null;
+  }
+
   const clickListenerTracker = new ClickListenerTracker();
   const hookManager = new HookManager();
 
@@ -760,8 +769,7 @@ export default (communicator?: {
         clickableEventNames.includes(eventName) &&
         element instanceof HTMLElement2 &&
         (typeof listener === "function" ||
-          (typeof listener === "object" &&
-            listener != null &&
+          (isUnknownDict(listener) &&
             typeof listener.handleEvent === "function"))
       )
     ) {
@@ -770,11 +778,7 @@ export default (communicator?: {
 
     // If `{ once: true }` is used, listen once ourselves so we can track the
     // removal of the listener when it has triggered.
-    if (
-      typeof options === "object" &&
-      options != null &&
-      Boolean(options.once)
-    ) {
+    if (isUnknownDict(options) && Boolean(options.once)) {
       apply(addEventListener, element, [
         eventName,
         () => {
@@ -806,8 +810,7 @@ export default (communicator?: {
         clickableEventNames.includes(eventName) &&
         element instanceof HTMLElement2 &&
         (typeof listener === "function" ||
-          (typeof listener === "object" &&
-            listener != null &&
+          (isUnknownDict(listener) &&
             typeof listener.handleEvent === "function"))
       )
     ) {

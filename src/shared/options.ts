@@ -26,6 +26,7 @@ import {
   deepEqual,
   DEFAULT_LOG_LEVEL,
   getErrorMessage,
+  isUnknownDict,
   LogLevel,
 } from "./main";
 
@@ -319,24 +320,24 @@ export function unflattenOptions(object: FlatOptions): FlatOptions {
   const options: FlatOptions = {};
 
   function set(parent: string, key: string, value: unknown) {
-    if (!(typeof options[parent] === "object" && options[parent] != null)) {
-      options[parent] = {};
-    }
+    const item = options[parent];
+    const object = isUnknownDict(item) ? item : {};
     if (value !== null) {
-      options[parent][key] = value;
+      object[key] = value;
     }
+    options[parent] = object;
   }
 
   function pushShortcut(parent: string, key: string, value: unknown) {
-    if (!Array.isArray(options[parent])) {
-      options[parent] = [];
-    }
+    const item = options[parent];
+    const array = Array.isArray(item) ? item : [];
     if (value !== null) {
-      options[parent].push({
+      array.push({
         shortcut: deserializeShortcut(key),
         action: value,
       });
     }
+    options[parent] = array;
   }
 
   for (const key of Object.keys(object)) {

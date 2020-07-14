@@ -27,6 +27,7 @@ import {
   CONTAINER_ID,
   getErrorMessage,
   isMixedCase,
+  isUnknownDict,
   log,
   makeRandomToken,
   partition,
@@ -1922,10 +1923,7 @@ export default class BackgroundProgram {
     if (!PROD) {
       if (isInitial) {
         const defaultStorageSync = DEFAULT_STORAGE_SYNC;
-        if (
-          typeof defaultStorageSync === "object" &&
-          defaultStorageSync != null
-        ) {
+        if (isUnknownDict(defaultStorageSync)) {
           await browser.storage.sync.clear();
           await browser.storage.sync.set(defaultStorageSync);
         }

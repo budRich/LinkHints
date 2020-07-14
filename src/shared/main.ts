@@ -183,11 +183,11 @@ export function timeout(duration: number, callback: () => unknown): () => void {
 export class Resets {
   _callbacks: Array<() => unknown> = [];
 
-  add(...callbacks: Array<() => unknown>) {
+  add(...callbacks: Array<() => unknown>): void {
     this._callbacks.push(...callbacks);
   }
 
-  reset() {
+  reset(): void {
     for (const callback of this._callbacks) {
       callback();
     }
@@ -295,7 +295,7 @@ export function getViewport(): Box {
 export function setStyles(
   element: HTMLElement,
   styles: { [key: string]: string }
-) {
+): void {
   for (const [property, value] of Object.entries(styles)) {
     // $FlowIgnore: Flow thinks that `value` is `unknown` here, but it is a `string`.
     element.style.setProperty(property, value, "important");
@@ -534,12 +534,7 @@ export function deepEqual(a: unknown, b: unknown): boolean {
     return true;
   }
 
-  if (
-    typeof a === "object" &&
-    a != null &&
-    typeof b === "object" &&
-    b != null
-  ) {
+  if (isUnknownDict(a) && isUnknownDict(b)) {
     const keysA = Object.keys(a);
     const keysB = Object.keys(b);
 
@@ -605,4 +600,10 @@ export function getErrorMessage(error: unknown): string {
   return error instanceof Error
     ? error.message
     : `Unknown error: ${String(error)}`;
+}
+
+export function isUnknownDict(
+  value: unknown
+): value is { [key: string]: unknown } {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

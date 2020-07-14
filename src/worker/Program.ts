@@ -22,6 +22,7 @@ import {
   getLabels,
   getTextRects,
   getViewport,
+  isUnknownDict,
   LAST_NON_WHITESPACE,
   log,
   NON_WHITESPACE,
@@ -113,14 +114,14 @@ export default class WorkerProgram {
     });
   }
 
-  stop() {
+  stop(): void {
     this.resets.reset();
     this.elementManager.stop();
     this.oneTimeWindowMessageToken = undefined;
     this.suppressNextKeyup = undefined;
   }
 
-  async sendMessage(message: FromWorker) {
+  async sendMessage(message: FromWorker): Promise<void> {
     log("log", "WorkerProgram#sendMessage", message.type, message, this);
     await browser.runtime.sendMessage(wrapMessage(message));
   }
@@ -412,14 +413,13 @@ export default class WorkerProgram {
 
   onWindowMessage(event: MessageEvent): undefined {
     const { oneTimeWindowMessageToken } = this;
+    const data = isUnknownDict(event.data) ? event.data : undefined;
 
     if (
-      oneTimeWindowMessageToken != null &&
-      typeof event.data === "object" &&
-      event.data != null &&
-      !Array.isArray(event.data) &&
-      event.data.token === oneTimeWindowMessageToken &&
-      typeof event.data.type === "string"
+      oneTimeWindowMessageToken !== undefined &&
+      data !== undefined &&
+      data.token === oneTimeWindowMessageToken &&
+      typeof data.type === "string"
     ) {
       let message = undefined;
       try {
@@ -476,7 +476,7 @@ export default class WorkerProgram {
   // shortcut without causing side-effects. This feels like a common thing, so
   // (at least for now) the extension shortcuts always do their thing (making it
   // impossible to trigger a site shortcut using the same keys).
-  onKeydown(event: KeyboardEvent) {
+  onKeydown(event: KeyboardEvent): void {
     const prefix = "WorkerProgram#onKeydown";
 
     if (!event.isTrusted) {
@@ -584,7 +584,7 @@ export default class WorkerProgram {
     }
   }
 
-  onKeyup(event: KeyboardEvent) {
+  onKeyup(event: KeyboardEvent): void {
     const prefix = "WorkerProgram#onKeyup";
 
     if (!event.isTrusted) {
@@ -606,7 +606,7 @@ export default class WorkerProgram {
     }
   }
 
-  onMutation(records: Array<MutationRecord>) {
+  onMutation(records: Array<MutationRecord>): void {
     const { current } = this;
     if (current == null) {
       return;
@@ -681,7 +681,7 @@ export default class WorkerProgram {
     types: ElementTypes,
     viewports: Array<Box>,
     oneTimeWindowMessageToken: string
-  ) {
+  ): void {
     const time = new TimeTracker();
 
     const [elementsWithUndefined, timeLeft]: [
@@ -736,7 +736,7 @@ export default class WorkerProgram {
   }: {
     current: CurrentElements;
     oneTimeWindowMessageToken: string | undefined;
-  }) {
+  }): void {
     const [elements, timeLeft]: [
       Array<VisibleElement | undefined>,
       number
@@ -796,7 +796,7 @@ export default class WorkerProgram {
 
   // Let the tutorial page know that Link Hints is installed, so it can toggle
   // some content.
-  markTutorial() {
+  markTutorial(): void {
     if (
       window.location.origin + window.location.pathname === META_TUTORIAL ||
       (!PROD && document.querySelector(`.${META_SLUG}Tutorial`) != null)
