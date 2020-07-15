@@ -5,6 +5,11 @@ declare global {
     Boolean: typeof Boolean;
     String: typeof String;
   }
+
+  interface HTMLElement {
+    scrollLeftMax: number;
+    scrollTopMax: number;
+  }
 }
 
 export {};

@@ -103,9 +103,8 @@ export default (communicator?: {
     consoleLogError(`[${META_SLUG}]`, ...args);
   }
 
-  type Deadline = { timeRemaining: () => number };
-
-  const infiniteDeadline: Deadline = {
+  const infiniteDeadline: IdleDeadline = {
+    didTimeout: false,
     timeRemaining: () => Infinity,
   };
 
@@ -369,7 +368,7 @@ export default (communicator?: {
       }
     }
 
-    flushQueue(deadline: Deadline) {
+    flushQueue(deadline: IdleDeadline) {
       const hadQueue =
         this.queue.items.length > 0 || this.sendQueue.items.length > 0;
       this._flushQueue(deadline);
@@ -384,7 +383,7 @@ export default (communicator?: {
       }
     }
 
-    _flushQueue(deadline: Deadline) {
+    _flushQueue(deadline: IdleDeadline) {
       const done = this.flushSendQueue(deadline);
 
       if (!done || this.queue.items.length === 0) {
@@ -463,7 +462,7 @@ export default (communicator?: {
       }
     }
 
-    flushSendQueue(deadline: Deadline): boolean {
+    flushSendQueue(deadline: IdleDeadline): boolean {
       const startQueueIndex = this.sendQueue.index;
       for (
         ;

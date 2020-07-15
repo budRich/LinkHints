@@ -32,3 +32,17 @@ declare function exportFunction(
 ): AnyFunction;
 
 declare function XPCNativeWrapper<T>(x: T): T;
+
+declare type IdleDeadline = {
+  didTimeout: boolean;
+  timeRemaining: () => number;
+};
+declare const idleCallbackID: unique symbol;
+declare type IdleCallbackID = number & { [idleCallbackID]: true };
+declare function requestIdleCallback(
+  callback: (deadline: IdleDeadline) => void,
+  opts?: {
+    timeout?: number;
+  }
+): IdleCallbackID;
+declare function cancelIdleCallback(idleCallbackID: IdleCallbackID): void;

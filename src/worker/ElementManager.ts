@@ -13,13 +13,13 @@ import {
   getElementsFromPoint,
   getLabels,
   getVisibleBox,
+  isUnknownDict,
   LAST_NON_WHITESPACE,
   log,
   NON_WHITESPACE,
   partition,
   Resets,
   SKIP_TEXT_ELEMENTS,
-  unreachable,
   walkTextNodes,
 } from "../shared/main";
 import type { Durations, Stats, TimeTracker } from "../shared/perf";
@@ -257,9 +257,8 @@ type ShadowRootData = {
   active: boolean;
 };
 
-type Deadline = { timeRemaining: () => number };
-
-const infiniteDeadline: Deadline = {
+const infiniteDeadline: IdleDeadline = {
+  didTimeout: false,
   timeRemaining: () => Infinity,
 };
 
@@ -378,7 +377,7 @@ export default class ElementManager {
     }
   }
 
-  stop() {
+  stop(): void {
     if (this.idleCallbackId != null) {
       cancelIdleCallback(this.idleCallbackId);
     }
@@ -389,7 +388,7 @@ export default class ElementManager {
     this.removalObserver.disconnect();
     this.queue = makeEmptyQueue();
     this.injectedHasQueue = false;
-    this.injectedListeners = new Map();
+    this.injectedListeners = new Map<string, Array<() => unknown>>();
     this.elements.clear();
     this.visibleElements.clear();
     this.visibleFrames.clear();
@@ -478,7 +477,9 @@ export default class ElementManager {
           node.getElementsByTagName("*");
 
     for (const child of children) {
-      yield child;
+      if (child instanceof HTMLElement) {
+        yield child;
+      }
 
       const root = this.shadowRoots.get(child);
       if (root != null) {
@@ -497,10 +498,10 @@ export default class ElementManager {
     if (root != null) {
       return this.getActiveElement(root.shadowRoot);
     }
-    return activeElement;
+    return activeElement instanceof HTMLElement ? activeElement : undefined;
   }
 
-  queueItem(item: QueueItem) {
+  queueItem(item: QueueItem): void {
     this.queue.items.push(item);
     this.requestIdleCallback();
   }
@@ -508,7 +509,7 @@ export default class ElementManager {
   queueRecords(
     records: Array<MutationRecord> | Array<Record>,
     { removalsOnly = false }: { removalsOnly?: boolean } = {}
-  ) {
+  ): void {
     if (records.length > 0) {
       this.queueItem({
         type: "Records",
@@ -523,7 +524,7 @@ export default class ElementManager {
     }
   }
 
-  requestIdleCallback() {
+  requestIdleCallback(): void {
     if (this.idleCallbackId == null) {
       this.idleCallbackId = requestIdleCallback((deadline) => {
         this.idleCallbackId = undefined;
@@ -532,17 +533,19 @@ export default class ElementManager {
     }
   }
 
-  onIntersection(entries: Array<IntersectionObserverEntry>) {
+  onIntersection(entries: Array<IntersectionObserverEntry>): void {
     for (const entry of entries) {
-      if (entry.isIntersecting) {
-        this.visibleElements.add(entry.target);
-      } else {
-        this.visibleElements.delete(entry.target);
+      if (entry.target instanceof HTMLElement) {
+        if (entry.isIntersecting) {
+          this.visibleElements.add(entry.target);
+        } else {
+          this.visibleElements.delete(entry.target);
+        }
       }
     }
   }
 
-  onFrameIntersection(entries: Array<IntersectionObserverEntry>) {
+  onFrameIntersection(entries: Array<IntersectionObserverEntry>): void {
     for (const entry of entries) {
       const element = entry.target;
       if (
@@ -558,7 +561,7 @@ export default class ElementManager {
     }
   }
 
-  onMutation(records: Array<MutationRecord>) {
+  onMutation(records: Array<MutationRecord>): void {
     if (records.length > 0) {
       this.queueRecords(records);
       this.observeRemovals(records);
@@ -566,7 +569,7 @@ export default class ElementManager {
     }
   }
 
-  onRemoval(records: Array<MutationRecord>) {
+  onRemoval(records: Array<MutationRecord>): void {
     this.queueRecords(records, {
       // Ignore added nodes and changed attributes.
       removalsOnly: true,
@@ -592,7 +595,7 @@ export default class ElementManager {
   // MutationObservers don’t have an `.unobserve` method, so all of these are
   // unsubscribed in bulk when `this.queue` is emptied by calling
   // `.disconnect()`.
-  observeRemovals(records: Array<MutationRecord>) {
+  observeRemovals(records: Array<MutationRecord>): void {
     for (const record of records) {
       for (const node of record.removedNodes) {
         this.removalObserver.observe(node, {
@@ -603,19 +606,22 @@ export default class ElementManager {
     }
   }
 
-  onClickableChanged(event: CustomEvent) {
-    this.onInjectedMessage({
-      type: "ClickableChanged",
-      target: getTarget(event),
-      clickable: Boolean(event.detail),
-    });
+  onClickableChanged(event: CustomEvent): void {
+    const target = getTarget(event);
+    if (target !== undefined) {
+      this.onInjectedMessage({
+        type: "ClickableChanged",
+        target,
+        clickable: Boolean(event.detail),
+      });
+    }
   }
 
-  onInjectedQueue(event: CustomEvent) {
+  onInjectedQueue(event: CustomEvent): void {
     this.onInjectedMessage({ type: "Queue", hasQueue: Boolean(event.detail) });
   }
 
-  onOpenShadowRootCreated(event: CustomEvent) {
+  onOpenShadowRootCreated(event: CustomEvent): void {
     const target = getTarget(event);
     if (target instanceof HTMLElement) {
       const { shadowRoot } = target;
@@ -626,7 +632,7 @@ export default class ElementManager {
     }
   }
 
-  onClosedShadowRootCreated(event: CustomEvent) {
+  onClosedShadowRootCreated(event: CustomEvent): void {
     const target = getTarget(event);
     if (target instanceof HTMLElement) {
       // Closed shadow roots are reported in two phases. First, a temporary
@@ -659,7 +665,7 @@ export default class ElementManager {
     }
   }
 
-  onRegisterSecretElement(event: CustomEvent) {
+  onRegisterSecretElement(event: CustomEvent): void {
     const target = getTarget(event);
     if (target instanceof HTMLElement) {
       log("log", "ElementManager#onRegisterSecretElement", target);
@@ -684,36 +690,35 @@ export default class ElementManager {
     }
   }
 
-  onOverflowChange(event: UIEvent) {
+  onOverflowChange(event: UIEvent): void {
     const target = getTarget(event);
-    this.queueItem({ type: "OverflowChanged", target });
-  }
-
-  onInjectedMessage(message: FromInjected) {
-    switch (message.type) {
-      case "ClickableChanged":
-        this.queueItem(message);
-        break;
-
-      case "ShadowRootCreated":
-        this.setShadowRoot(message.shadowRoot);
-        break;
-
-      case "Queue":
-        this.injectedHasQueue = message.hasQueue;
-        break;
-
-      default:
-        unreachable(message.type, message);
+    if (target !== undefined) {
+      this.queueItem({ type: "OverflowChanged", target });
     }
   }
 
-  addEventListener(eventName: string, fn: () => unknown) {
+  onInjectedMessage(message: FromInjected): undefined {
+    switch (message.type) {
+      case "ClickableChanged":
+        this.queueItem(message);
+        return undefined;
+
+      case "ShadowRootCreated":
+        this.setShadowRoot(message.shadowRoot);
+        return undefined;
+
+      case "Queue":
+        this.injectedHasQueue = message.hasQueue;
+        return undefined;
+    }
+  }
+
+  addEventListener(eventName: string, fn: () => unknown): void {
     const previous = this.injectedListeners.get(eventName) || [];
     this.injectedListeners.set(eventName, [...previous, fn]);
   }
 
-  sendInjectedEvent(eventName: string) {
+  sendInjectedEvent(eventName: string): void {
     if (BROWSER === "firefox") {
       const listeners = this.injectedListeners.get(eventName) || [];
       for (const listener of listeners) {
@@ -724,7 +729,7 @@ export default class ElementManager {
     }
   }
 
-  setShadowRoot(shadowRoot: ShadowRoot) {
+  setShadowRoot(shadowRoot: ShadowRoot): void {
     // MutationObservers don’t have an `.unobserve` method, so each shadow root
     // has its own MutationObserver, which can be `.disconnect()`:ed when hosts
     // are removed.
@@ -769,7 +774,7 @@ export default class ElementManager {
   // the page. If so, we need access to closed shadow roots again. Since
   // `this.shadowRoots` is a `WeakMap`, items should disappear from it
   // automatically as the host elements are garbage collected.
-  deactivateShadowRoot(root: ShadowRootData) {
+  deactivateShadowRoot(root: ShadowRootData): void {
     root.mutationObserver.disconnect();
     root.resets.reset();
     root.active = false;
@@ -884,7 +889,7 @@ export default class ElementManager {
     }
   }
 
-  flushQueue(deadline: Deadline) {
+  flushQueue(deadline: IdleDeadline): void {
     const startQueueIndex = this.queue.index;
 
     log(
@@ -1227,7 +1232,7 @@ export default class ElementManager {
           time
         );
 
-        if (measurements.isRejected) {
+        if ("isRejected" in measurements) {
           return {
             isRejected: true,
             debug: {
@@ -1265,7 +1270,7 @@ export default class ElementManager {
 
     time.start("check duration");
     const slow = maybeResults.filter(
-      (result) => result.isRejected && result.debug.reason === "slow"
+      (result) => "isRejected" in result && result.debug.reason === "slow"
     ).length;
     if (slow > 0) {
       log("warn", prefix, `Skipped ${slow} element(s) due to timeout`, {
@@ -1276,7 +1281,7 @@ export default class ElementManager {
 
     time.start("filter");
     const results = maybeResults.map((result) =>
-      result.isRejected || deduper.rejects(result) ? undefined : result
+      "isRejected" in result || deduper.rejects(result) ? undefined : result
     );
 
     const timeLeft = t.MAX_DURATION.value - (Date.now() - startTime);
@@ -1506,7 +1511,10 @@ function makeEmptyQueue<T>(): Queue<T> {
 // (`<label>`–`<input>` pairs) or hints that are most likely false positives
 // (`<div>`s with click listeners wrapping a `<button>`).
 class Deduper {
-  positionMap: Map<string, Array<VisibleElement>> = new Map();
+  positionMap: Map<string, Array<VisibleElement>> = new Map<
+    string,
+    Array<VisibleElement>
+  >();
   rejected: Set<HTMLElement> = new Set();
 
   add(visibleElement: VisibleElement) {
@@ -1650,15 +1658,17 @@ function getMeasurements(
       const rect = rects[0];
       if (rect.width === 0) {
         for (const child of element.children) {
-          const measurements = getMeasurements(
-            child,
-            elementType,
-            viewports,
-            range,
-            time
-          );
-          if (!measurements.isRejected) {
-            return measurements;
+          if (child instanceof HTMLElement) {
+            const measurements = getMeasurements(
+              child,
+              elementType,
+              viewports,
+              range,
+              time
+            );
+            if (!("isRejected" in measurements)) {
+              return measurements;
+            }
           }
         }
       }
@@ -1718,7 +1728,7 @@ function getMeasurements(
         range,
         time
       );
-      return measurements.isRejected
+      return "isRejected" in measurements
         ? {
             ...measurements,
             debug: {
@@ -1951,7 +1961,7 @@ function getMultiRectPoint({
 function getFirstImagePoint(
   element: HTMLElement,
   viewports: Array<Box>
-): ?{ point: Point; rect: ClientRect } {
+): { point: Point; rect: ClientRect } | undefined {
   const images = [
     // First try to find an image _child._ For example, <button
     // class="icon-button"><img></button>`. (This button should get the hint at
@@ -1968,24 +1978,26 @@ function getFirstImagePoint(
   // for now we just pick the first image (in DOM order) that gets a
   // `visibleBox`, but there might be a more clever way of doing it.
   for (const image of images) {
-    const rect = image.getBoundingClientRect();
-    const visibleBox = getVisibleBox(rect, viewports);
+    if (image instanceof HTMLElement) {
+      const rect = image.getBoundingClientRect();
+      const visibleBox = getVisibleBox(rect, viewports);
 
-    if (visibleBox != null) {
-      const borderAndPaddingPoint = getBorderAndPaddingPoint(
-        image,
-        rect,
-        visibleBox
-      );
-      return {
-        point: {
-          // The image might have padding around it.
-          ...borderAndPaddingPoint,
-          align: rect.height >= t.MIN_HEIGHT_BOX.value ? "left" : "right",
-          debug: `getFirstImagePoint borderAndPaddingPoint: ${borderAndPaddingPoint.debug}`,
-        },
-        rect,
-      };
+      if (visibleBox != null) {
+        const borderAndPaddingPoint = getBorderAndPaddingPoint(
+          image,
+          rect,
+          visibleBox
+        );
+        return {
+          point: {
+            // The image might have padding around it.
+            ...borderAndPaddingPoint,
+            align: rect.height >= t.MIN_HEIGHT_BOX.value ? "left" : "right",
+            debug: `getFirstImagePoint borderAndPaddingPoint: ${borderAndPaddingPoint.debug}`,
+          },
+          rect,
+        };
+      }
     }
   }
 
@@ -2025,7 +2037,7 @@ function getNonCoveredPoint(
     maxX,
     time,
   }: { x: number; y: number; maxX: number; time: TimeTracker }
-): ?{ x: number; y: number } {
+): { x: number; y: number } | undefined {
   time.start("getNonCoveredPoint:getElementFromPoint");
   const elementAtPoint = getElementFromPoint(element, x, y);
 
@@ -2241,13 +2253,11 @@ function isScrollable(element: HTMLElement): boolean {
   // are Firefox-only as well. Those properties are the easiest way to check if
   // an element overflows in either the X or Y direction.
   return (
-    // $FlowIgnore: See above.
     (element.scrollLeftMax > 0 &&
       (t.VALUES_SCROLLABLE_OVERFLOW.value.has(
         computedStyle.getPropertyValue("overflow-x")
       ) ||
         element === document.scrollingElement)) ||
-    // $FlowIgnore: See above.
     (element.scrollTopMax > 0 &&
       (t.VALUES_SCROLLABLE_OVERFLOW.value.has(
         computedStyle.getPropertyValue("overflow-y")
@@ -2266,16 +2276,13 @@ function hasClickListenerProp(element: HTMLElement): boolean {
   return CLICKABLE_EVENT_PROPS.some((prop) =>
     BROWSER === "chrome"
       ? element.hasAttribute(prop)
-      : // $FlowIgnore: I _do_ want to dynamically read properties here.
-        typeof element[prop] === "function"
+      : isUnknownDict(element) && typeof element[prop] === "function"
   );
 }
 
-function getXY(box: Box | ClientRect): { x: number; y: number } {
+function getXY(box: Box | DOMRect): { x: number; y: number } {
   return {
-    // $FlowIgnore: Chrome and Firefox _do_ support `.x` and `.y` on ClientRects (aka DOMRects).
     x: box.x,
-    // $FlowIgnore: See above.
     y: box.y + box.height / 2,
   };
 }
@@ -2341,10 +2348,10 @@ function isDisabled(element: HTMLElement): boolean {
 // If `event` originates from an open shadow root, `event.target` is the same as
 // `shadowRoot.host`, while `event.composedPath()[0]` is the actual element that
 // the event came from.
-function getTarget(event: Event): EventTarget {
+function getTarget(event: Event): EventTarget | undefined {
   // $FlowIgnore: Flow doesn’t know about `.composedPath()` yet.
   const path = event.composedPath();
-  return path.length > 0 ? path[0] : event.target;
+  return path.length > 0 ? path[0] : event.target || undefined;
 }
 
 function mutationObserve(mutationObserver: MutationObserver, node: Node) {
