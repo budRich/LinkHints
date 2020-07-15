@@ -1,8 +1,13 @@
 declare global {
   interface Window {
     wrappedJSObject?: Window;
-    Event: typeof Event;
     Boolean: typeof Boolean;
+    Element: typeof Element;
+    Event: typeof Event;
+    EventTarget: typeof EventTarget;
+    Function: typeof Function;
+    HTMLElement: typeof HTMLElement;
+    Object: typeof Object;
     String: typeof String;
   }
 

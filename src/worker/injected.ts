@@ -74,7 +74,7 @@ export default (communicator?: {
     handler: () => unknown,
     useCapture?: true
   ) => unknown;
-}) => {
+}): void => {
   // Refers to the page `window` both in Firefox and other browsers.
   const win = BROWSER === "firefox" ? window.wrappedJSObject || window : window;
 
@@ -96,10 +96,15 @@ export default (communicator?: {
   const { appendChild, removeChild, getRootNode } = Node.prototype;
   const { replaceWith } = Element.prototype;
   const { addEventListener, dispatchEvent } = EventTarget.prototype;
-  const { apply } = Reflect;
+  const apply: <T>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    target: (...args: Array<any>) => T,
+    thisArgument: unknown,
+    argumentsList: Array<unknown>
+  ) => T = Reflect.apply;
   const { get: mapGet } = Map.prototype;
 
-  function logError(...args: Array<unknown>) {
+  function logError(...args: Array<unknown>): void {
     consoleLogError(`[${META_SLUG}]`, ...args);
   }
 
@@ -138,13 +143,13 @@ export default (communicator?: {
     // `hook` is run _after_ the original function. If you need to do something
     // _before_ the original function is called, use a `prehook`.
     hookInto<T>(
-      obj: { [key: string]: unknown },
+      obj: object,
       name: string,
       hook?: (
-        arg: { returnValue: any; prehookData: T | undefined },
-        ...args: Array<any>
-      ) => any,
-      prehook?: (...args: Array<any>) => T
+        arg: { returnValue: T; prehookData: T | undefined },
+        ...args: Array<unknown>
+      ) => unknown,
+      prehook?: (...args: Array<unknown>) => T | undefined
     ): void {
       const descriptor = Reflect.getOwnPropertyDescriptor(obj, name);
       if (descriptor === undefined) {
@@ -152,7 +157,8 @@ export default (communicator?: {
       }
 
       const prop = "value" in descriptor ? "value" : "set";
-      const originalFn = descriptor[prop];
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const originalFn: (...args: Array<unknown>) => T = descriptor[prop];
 
       const { fnMap } = this;
 
@@ -161,7 +167,7 @@ export default (communicator?: {
       const fn =
         hook == null
           ? {
-              [originalFn.name](...args: Array<any>): any {
+              [originalFn.name](...args: Array<unknown>): unknown {
                 // In the cases where no hook is provided we just want to make sure
                 // that the method (such as `toString`) is called with the
                 // _original_ function, not the overriding function.
@@ -173,7 +179,7 @@ export default (communicator?: {
               },
             }[originalFn.name]
           : {
-              [originalFn.name](...args: Array<any>): any {
+              [originalFn.name](...args: Array<unknown>): unknown {
                 let wrappedArgs = args;
                 if (BROWSER === "firefox") {
                   wrappedArgs = args.map((arg) => XPCNativeWrapper(arg));
@@ -202,7 +208,7 @@ export default (communicator?: {
                     );
                   } catch (error) {
                     if (
-                      error &&
+                      isUnknownDict(error) &&
                       error.name === "TypeError" &&
                       error.message === "can't access dead object"
                     ) {
@@ -224,8 +230,11 @@ export default (communicator?: {
                     this,
                     ...wrappedArgs
                   );
-                  if (result != null && typeof result.then === "function") {
-                    result.then(undefined, (error) => {
+                  if (
+                    isUnknownDict(result) &&
+                    typeof result.then === "function"
+                  ) {
+                    result.then(undefined, (error: Error) => {
                       logHookError(error, obj, name);
                     });
                   }
@@ -239,7 +248,7 @@ export default (communicator?: {
 
       // Make sure that `.length` is correct. This has to be done _after_
       // `exportFunction`.
-      const setLength = (target) => {
+      const setLength = (target: object) => {
         Reflect.defineProperty(target, "length", {
           ...Reflect.getOwnPropertyDescriptor(Function.prototype, "length"),
           value: originalFn.length,
@@ -291,11 +300,7 @@ export default (communicator?: {
     }
   }
 
-  function logHookError(
-    error: Error,
-    obj: { [key: string]: unknown },
-    name: string
-  ) {
+  function logHookError(error: Error, obj: unknown, name: string): void {
     logError(`Failed to run hook for ${name} on`, obj, error);
   }
 
@@ -330,7 +335,10 @@ export default (communicator?: {
   };
 
   class ClickListenerTracker {
-    clickListenersByElement: ClickListenersByElement = new Map();
+    clickListenersByElement: ClickListenersByElement = new Map<
+      HTMLElement,
+      OptionsByListener
+    >();
     queue: Queue<QueueItem> = makeEmptyQueue();
     sendQueue: Queue<SendQueueItem> = makeEmptyQueue();
     idleCallbackId: IdleCallbackID | undefined = undefined;
@@ -340,7 +348,7 @@ export default (communicator?: {
         cancelIdleCallback(this.idleCallbackId);
       }
 
-      this.clickListenersByElement = new Map();
+      this.clickListenersByElement = new Map<HTMLElement, OptionsByListener>();
       this.queue = makeEmptyQueue();
       this.sendQueue = makeEmptyQueue();
       this.idleCallbackId = undefined;
@@ -394,7 +402,7 @@ export default (communicator?: {
       // The data structure simplifies additions and removals: If first adding
       // an element and then removing it, it’s the same as never having added or
       // removed the element at all (and vice versa).
-      const addedRemoved = new AddedRemoved();
+      const addedRemoved = new AddedRemoved<HTMLElement>();
 
       const startQueueIndex = this.queue.index;
       let timesUp = false;
@@ -621,10 +629,9 @@ export default (communicator?: {
   const optionNames: Array<string> = ["capture", "once", "passive"];
 
   function stringifyOptions(eventName: string, options: unknown): string {
-    const normalized =
-      options == null || typeof options !== "object"
-        ? { capture: Boolean(options) }
-        : options;
+    const normalized = isUnknownDict(options)
+      ? options
+      : { capture: Boolean(options) };
     const optionsString = optionNames
       .map((name) => Boolean(normalized[name]).toString())
       .join(",");
@@ -633,13 +640,11 @@ export default (communicator?: {
 
   function hasClickListenerProp(element: HTMLElement): boolean {
     return clickableEventProps.some(
-      (prop) =>
-        // $FlowIgnore: I _do_ want to dynamically read properties here.
-        typeof element[prop] === "function"
+      (prop) => isUnknownDict(element) && typeof element[prop] === "function"
     );
   }
 
-  function sendWindowEvent(eventName: string, detail: any) {
+  function sendWindowEvent(eventName: string, detail: unknown) {
     apply(dispatchEvent, window, [new CustomEvent2(eventName, { detail })]);
   }
 
@@ -671,7 +676,7 @@ export default (communicator?: {
   function sendElementEvent(
     eventName: string,
     element: Element,
-    detail: any = undefined,
+    detail: unknown = undefined,
     root: OpenComposedRootNode = getOpenComposedRootNode(element)
   ) {
     const send = () => {
@@ -761,7 +766,7 @@ export default (communicator?: {
     eventName: unknown,
     listener: unknown,
     options: unknown
-  ) {
+  ): void {
     if (
       !(
         typeof eventName === "string" &&
@@ -802,7 +807,7 @@ export default (communicator?: {
     eventName: unknown,
     listener: unknown,
     options: unknown
-  ) {
+  ): void {
     if (
       !(
         typeof eventName === "string" &&
@@ -842,7 +847,7 @@ export default (communicator?: {
     prehookData,
   }: {
     prehookData: QueueItem | undefined;
-  }) {
+  }): void {
     if (prehookData != null) {
       clickListenerTracker.queueItem(prehookData);
     }
@@ -852,7 +857,7 @@ export default (communicator?: {
     returnValue: shadowRoot,
   }: {
     returnValue: ShadowRoot;
-  }) {
+  }): void {
     if (communicator != null) {
       communicator.onInjectedMessage({
         type: "ShadowRootCreated",
@@ -895,11 +900,11 @@ export default (communicator?: {
     }
   }
 
-  function onFlush() {
+  function onFlush(): void {
     clickListenerTracker.flushQueue(infiniteDeadline);
   }
 
-  function onReset() {
+  function onReset(): void {
     if (!PROD) {
       consoleLog(`[${META_SLUG}] Resetting injected.ts`, RESET_EVENT);
     }
@@ -924,16 +929,16 @@ export default (communicator?: {
   hookManager.hookInto(
     win.EventTarget.prototype,
     "addEventListener",
-    (_data, ...args) => {
-      onAddEventListener(...args);
+    (_data, element, eventName, listener, options) => {
+      onAddEventListener(element, eventName, listener, options);
     }
   );
 
   hookManager.hookInto(
     win.EventTarget.prototype,
     "removeEventListener",
-    (_data, ...args) => {
-      onRemoveEventListener(...args);
+    (_data, element, eventName, listener, options) => {
+      onRemoveEventListener(element, eventName, listener, options);
     }
   );
 

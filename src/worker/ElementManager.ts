@@ -311,7 +311,7 @@ export default class ElementManager {
     ]);
   }
 
-  async start() {
+  async start(): Promise<void> {
     const { documentElement } = document;
     if (documentElement == null) {
       return;
