@@ -89,11 +89,8 @@ const CSS_SUGGESTIONS = [
 ];
 
 const getLayoutMap: (() => Promise<Map<string, string>>) | undefined =
-  // $FlowIgnore: Flow doesn’t know about `navigator.keyboard` yet.
-  navigator.keyboard != null &&
-  typeof navigator.keyboard.getLayoutMap === "function"
-    ? // $FlowIgnore: Flow doesn’t allow `.bind`:ing this "unknown" function.
-      navigator.keyboard.getLayoutMap.bind(navigator.keyboard)
+  navigator.keyboard != null
+    ? navigator.keyboard.getLayoutMap.bind(navigator.keyboard)
     : undefined;
 
 type Props = {};

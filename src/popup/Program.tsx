@@ -165,7 +165,6 @@ async function getDebugInfo(): Promise<string> {
     browser.runtime.getPlatformInfo(),
     browser.storage.sync.get(),
     browser.storage.local.get(),
-    // $FlowIgnore: Flow doesn’t know about `navigator.keyboard` yet.
     navigator.keyboard != null ? navigator.keyboard.getLayoutMap() : null,
   ]);
 

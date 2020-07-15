@@ -11,6 +11,14 @@ declare global {
     String: typeof String;
   }
 
+  interface Navigator {
+    keyboard?: Keyboard;
+  }
+
+  interface Keyboard {
+    getLayoutMap: () => Promise<Map<string, string>>;
+  }
+
   interface HTMLElement {
     scrollLeftMax: number;
     scrollTopMax: number;
