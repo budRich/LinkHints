@@ -999,7 +999,10 @@ export default class ElementManager {
                       return;
                     }
                     const child = children[item.childIndex];
-                    if (!this.queue.addedElements.has(child)) {
+                    if (
+                      child instanceof HTMLElement &&
+                      !this.queue.addedElements.has(child)
+                    ) {
                       this.addOrRemoveElement("added", child);
                       this.queue.addedElements.add(child);
                     }
@@ -1049,11 +1052,13 @@ export default class ElementManager {
                     return;
                   }
                   const child = children[item.childIndex];
-                  this.addOrRemoveElement("removed", child);
-                  // The same element might be added, removed and then added
-                  // again, all in the same queue. So unmark it as already gone
-                  // through so it can be re-added again.
-                  this.queue.addedElements.delete(child);
+                  if (child instanceof HTMLElement) {
+                    this.addOrRemoveElement("removed", child);
+                    // The same element might be added, removed and then added
+                    // again, all in the same queue. So unmark it as already gone
+                    // through so it can be re-added again.
+                    this.queue.addedElements.delete(child);
+                  }
                 }
               }
 
