@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { ComponentChildren, h, VNode } from "preact";
 
 import { classlist } from "../shared/main";
 
@@ -17,14 +17,14 @@ export default function Field({
   id: string;
   connected?: boolean;
   fullWidth?: boolean;
-  label: React.ComponentChildren;
+  label: ComponentChildren;
   span?: boolean;
-  description?: React.ComponentChildren;
+  description?: ComponentChildren;
   changed: boolean;
   changedRight?: boolean;
-  render: ({ id: string }) => React.VNode;
+  render: (data: { id: string }) => VNode;
   onReset?: () => void;
-}) {
+}): VNode {
   const reset =
     onReset != null && changed ? (
       <button
