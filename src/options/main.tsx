@@ -1,5 +1,6 @@
 import { createElement, render } from "preact";
 
+import { isUnknownDict } from "../shared/main";
 import OptionsProgram from "./Program";
 
 function start() {
@@ -10,10 +11,12 @@ function start() {
 
   render(
     createElement(OptionsProgram, {
-      ref: (program) => {
+      ref: (program: OptionsProgram) => {
         // Attach the instance to `window` for debugging in the regular Web
         // Console.
-        window.optionsProgram = program;
+        if (isUnknownDict(window)) {
+          window.optionsProgram = program;
+        }
       },
     }),
     body

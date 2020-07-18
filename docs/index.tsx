@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { ComponentChildren, h } from "preact";
 
 import config from "../project.config";
 import KeyboardShortcut, { shortcuts } from "./KeyboardShortcuts";
@@ -458,11 +458,15 @@ function Reasons() {
   );
 }
 
+function dummyOnClick() {
+  // Do nothing.
+}
+
 function Demo({
   title,
   filterByText = false,
 }: {
-  title: React.ComponentChildren;
+  title: ComponentChildren;
   filterByText?: boolean;
 }) {
   function Hint({
@@ -500,13 +504,13 @@ function Demo({
       <div className="Demo" aria-hidden="true">
         <div className="Demo-inner">
           <div className="Demo-bar">
-            <div className="Demo-input" onClick="">
+            <div className="Demo-input" onClick={dummyOnClick}>
               <span className="Demo-relative">
                 <Hint>W</Hint>
                 <Text>lorem ipsum</Text>
               </span>
             </div>
-            <div className="Demo-button" onClick="">
+            <div className="Demo-button" onClick={dummyOnClick}>
               <span className="Demo-relative">
                 <Hint>H</Hint>
                 <Text>Setar</Text>

@@ -1,6 +1,6 @@
 import type { Token } from "js-tokens";
 import jsTokens from "js-tokens";
-import * as React from "preact";
+import { h, VNode } from "preact";
 
 import config from "../project.config";
 import scripts from "./scripts.es5";
@@ -9,7 +9,7 @@ export default function Scripts(props: {
   macifyKbd?: boolean;
   observeQuickLinks?: boolean;
   autoCloseDetails?: boolean;
-}) {
+}): VNode | undefined {
   const items = Object.keys(scripts)
     .map((name) => {
       const fn = scripts[name];
@@ -25,7 +25,7 @@ export default function Scripts(props: {
     <script
       dangerouslySetInnerHTML={{ __html: config.prod ? minifyJS(code) : code }}
     />
-  ) : null;
+  ) : undefined;
 }
 
 type State = { ignored: false } | { ignored: true; multiline: boolean };
@@ -48,11 +48,8 @@ function stateFromToken(token: Token): State {
 }
 
 function minifyJS(js: string): string {
-  return Array.from(jsTokens(js)).reduce(
-    (
-      [state, previousToken, result]: [State, Token | undefined, string],
-      token
-    ) => {
+  return Array.from(jsTokens(js)).reduce<[State, Token | undefined, string]>(
+    ([state, previousToken, result], token) => {
       const tokenState = stateFromToken(token);
       return state.ignored
         ? tokenState.ignored

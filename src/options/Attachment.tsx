@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { ComponentChildren, h, VNode } from "preact";
 
 import { classlist } from "../shared/main";
 
@@ -8,10 +8,10 @@ export default function Attachment({
   children,
   ...restProps
 }: {
-  label?: React.ComponentChildren;
-  content?: React.ComponentChildren;
-  children: React.ComponentChildren;
-}) {
+  label?: ComponentChildren;
+  content?: ComponentChildren;
+  children: ComponentChildren;
+}): VNode {
   const Tag = label != null ? "label" : "span";
   return (
     <Tag {...restProps} className="Attachment">

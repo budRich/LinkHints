@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { h, VNode } from "preact";
 import renderToString from "preact-render-to-string";
 
 export default ({

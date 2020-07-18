@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { h, VNode } from "preact";
 
 import {
   KeyboardAction,
@@ -27,7 +27,7 @@ type Props = {
   mode: Mode;
   mac: boolean;
   useKeyTranslations: boolean;
-  description?: React.ComponentChildren;
+  description?: ComponentChildren;
   chars: string;
   mappings: Array<KeyboardMapping>;
   defaultMappings: Array<KeyboardMapping>;

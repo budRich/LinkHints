@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { h, VNode } from "preact";
 import { useLayoutEffect, useState } from "preact/hooks";
 
 import { timeout } from "../shared/main";
@@ -14,7 +14,7 @@ export default function StringSetEditor({
   savedValue: Set<string>;
   save: (set: Set<string>, reason: Reason) => void;
   id?: string;
-}) {
+}): VNode {
   const [hasFocus, setHasFocus] = useState<boolean>(false);
   const [stateValue, setStateValue] = useState<Array<string> | undefined>(
     undefined
@@ -45,7 +45,7 @@ export default function StringSetEditor({
         setHasFocus(true);
       }}
     >
-      {[value, ...(endsWithBlank ? [] : [""])].map((item, index) => (
+      {value.concat(endsWithBlank ? [] : [""]).map((item, index) => (
         <TextInput
           key={index}
           id={index === 0 ? id : undefined}
@@ -63,7 +63,12 @@ export default function StringSetEditor({
             setStateValue(newValue);
             save(new Set(newValue), reason);
           }}
-          onKeyDown={(event) => {
+          onKeyDown={(
+            event: h.JSX.TargetedEvent<
+              HTMLInputElement | HTMLTextAreaElement,
+              KeyboardEvent
+            >
+          ) => {
             const { target } = event;
             if (target instanceof HTMLElement && event.key === "Enter") {
               const next = target.nextElementSibling;

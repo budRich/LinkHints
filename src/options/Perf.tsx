@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { h, VNode } from "preact";
 
 import { classlist } from "../shared/main";
 import { Durations, MAX_PERF_ENTRIES, Stats, TabsPerf } from "../shared/perf";
@@ -13,7 +13,7 @@ export default function Perf({
   expandedPerfTabIds: Array<string>;
   onExpandChange: (expandedPerfTabIds: Array<string>) => void;
   onReset: () => void;
-}) {
+}): VNode {
   const keys = Object.keys(perf);
 
   const isEmpty = keys.every((tabId) => perf[tabId].length === 0);
@@ -181,7 +181,7 @@ export default function Perf({
   );
 }
 
-function toCells(items: Array<string>): Array<React.VNode> {
+function toCells(items: Array<string>): Array<VNode> {
   const lastIndex = items.length - 1;
   return Array.from({ length: MAX_PERF_ENTRIES }, (_, index) => (
     <td key={index}>{index <= lastIndex ? items[index] : null}</td>
@@ -209,7 +209,8 @@ function sumStats(
   allStats: Array<Array<Stats>>
 ): Array<Array<Stats>> {
   return allStats.map((stats) => {
-    const sum = (fn) => stats.reduce((result, item) => result + fn(item), 0);
+    const sum = (fn: (stats: Stats) => number) =>
+      stats.reduce((result, item) => result + fn(item), 0);
 
     return [
       {
@@ -226,7 +227,7 @@ function sumStats(
 }
 
 function sumDurations(allDurations: Array<Durations>): Durations {
-  const result: Map<string, number> = new Map();
+  const result = new Map<string, number>();
 
   for (const durations of allDurations) {
     for (const [label, duration] of durations) {

@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { h, VNode } from "preact";
 
 type Modifier = boolean | { mac: "alt" | "cmd" | "ctrl" | "shift" };
 
@@ -19,8 +19,8 @@ export default function KeyboardShortcut({
   ctrl?: Modifier;
   shift?: Modifier;
   press?: string;
-}) {
-  const modifiers = [
+}): VNode {
+  const modifiers: Array<[string, Modifier]> = [
     [MODIFIER_NAMES.ctrl, ctrl],
     [MODIFIER_NAMES.alt, alt],
     [MODIFIER_NAMES.shift, shift],

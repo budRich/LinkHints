@@ -1,7 +1,9 @@
-import * as React from "preact";
+import { ComponentChildren, h, VNode } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 import { addEventListener, classlist, Resets } from "../shared/main";
+
+type OnChange = (open: boolean) => void;
 
 export default function ButtonWithPopup({
   open: openProp,
@@ -11,23 +13,23 @@ export default function ButtonWithPopup({
   className = "",
   ...restProps
 }: {
-  buttonContent: React.ComponentChildren;
-  popupContent: (actions: { close: () => void }) => React.VNode;
+  buttonContent: ComponentChildren;
+  popupContent: (actions: { close: () => void }) => VNode;
   open?: boolean;
-  onChange?: (boolean) => void;
+  onChange?: OnChange;
   className?: string;
-}) {
-  const onChangeRef = useRef();
+}): VNode {
+  const onChangeRef = useRef<OnChange | undefined>();
   onChangeRef.current = onChange;
 
   const [openState, setOpenState] = useState<boolean>(false);
 
   const open = openProp != null ? openProp : openState;
 
-  const rootRef = useRef();
+  const rootRef = useRef<HTMLDivElement>();
 
   const setOpen = useCallback(
-    (newOpen) => {
+    (newOpen: boolean) => {
       if (openProp == null) {
         setOpenState(newOpen);
       }
@@ -40,7 +42,7 @@ export default function ButtonWithPopup({
 
   useEffect(() => {
     if (open) {
-      function closeIfOutside(event: Event) {
+      const closeIfOutside = (event: Event) => {
         const root = rootRef.current;
         const { target } = event;
 
@@ -52,7 +54,7 @@ export default function ButtonWithPopup({
         ) {
           setOpen(false);
         }
-      }
+      };
 
       const resets = new Resets();
       resets.add(

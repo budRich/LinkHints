@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { Component, createRef, h, VNode } from "preact";
 import {
   array,
   autoRecord,
@@ -33,12 +33,12 @@ import {
   classlist,
   decodeLogLevel,
   deepEqual,
+  getErrorMessage,
   isUnknownDict,
   log,
   LOG_LEVELS,
   normalizeUnsignedInt,
   Resets,
-  unreachable,
 } from "../shared/main";
 import type {
   FromBackground,
@@ -93,7 +93,7 @@ const getLayoutMap: (() => Promise<Map<string, string>>) | undefined =
     ? navigator.keyboard.getLayoutMap.bind(navigator.keyboard)
     : undefined;
 
-type Props = {};
+type Props = unknown;
 
 type State = {
   options: OptionsData | undefined;
@@ -135,13 +135,13 @@ type State = {
   localStorageCleared: Date | undefined;
 };
 
-export default class OptionsProgram extends React.Component<Props, State> {
+export default class OptionsProgram extends Component<Props, State> {
   resets: Resets = new Resets();
   hiddenErrors: Array<string> = [];
-  keysTableRef = React.createRef<{ current: HTMLDivElement | null }>();
+  keysTableRef = createRef<{ current: HTMLDivElement | null }>();
   hasRestoredPosition = false;
 
-  state = {
+  state: State = {
     options: undefined,
     hasSaved: false,
     customChars: "",
@@ -214,9 +214,9 @@ export default class OptionsProgram extends React.Component<Props, State> {
     await browser.runtime.sendMessage(wrapMessage(message));
   }
 
-  onMessage(wrappedMessage: FromBackground) {
+  onMessage(wrappedMessage: FromBackground): undefined {
     if (wrappedMessage.type !== "ToOptions") {
-      return;
+      return undefined;
     }
 
     const { message } = wrappedMessage;
@@ -246,7 +246,7 @@ export default class OptionsProgram extends React.Component<Props, State> {
         if (!errorsHidden) {
           this.hiddenErrors = [];
         }
-        break;
+        return undefined;
       }
 
       case "KeypressCaptured":
@@ -256,7 +256,7 @@ export default class OptionsProgram extends React.Component<Props, State> {
             keypress: message.keypress,
           },
         });
-        break;
+        return undefined;
 
       case "PerfUpdate":
         this.setState(
@@ -268,21 +268,18 @@ export default class OptionsProgram extends React.Component<Props, State> {
           }),
           this.savePerf
         );
-        break;
-
-      default:
-        unreachable(message.type, message);
+        return undefined;
     }
   }
 
-  async savePerf() {
+  async savePerf(): Promise<void> {
     if (!PROD) {
       await browser.storage.local.set({ perf: this.state.perf });
       await this.restorePosition();
     }
   }
 
-  saveOptions(partialOptions: PartialOptions) {
+  saveOptions(partialOptions: PartialOptions): void {
     this.setState((state) => ({
       options:
         state.options == null
@@ -303,7 +300,7 @@ export default class OptionsProgram extends React.Component<Props, State> {
     });
   }
 
-  resetOptions() {
+  resetOptions(): void {
     this.setState((state) => ({
       options:
         state.options == null
@@ -320,7 +317,7 @@ export default class OptionsProgram extends React.Component<Props, State> {
     });
   }
 
-  async importOptions() {
+  async importOptions(): Promise<void> {
     const { options: optionsData } = this.state;
     if (optionsData == null) {
       return;
@@ -350,13 +347,13 @@ export default class OptionsProgram extends React.Component<Props, State> {
       this.setState((state) => ({
         importData: {
           ...state.importData,
-          errors: [`The file is invalid: ${error.message}`],
+          errors: [`The file is invalid: ${getErrorMessage(error)}`],
         },
       }));
     }
   }
 
-  exportOptions() {
+  exportOptions(): void {
     const { options: optionsData } = this.state;
 
     const tweakableExport = getTweakableExport();

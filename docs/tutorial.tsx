@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { ComponentChildren, h } from "preact";
 
 import config from "../project.config";
 import KeyboardShortcut, { shortcuts } from "./KeyboardShortcuts";
@@ -141,9 +141,9 @@ const STEPS = [
           filter by letters.
         </p>
         <p className="Choices">
-          <a tabIndex="-1">iPhone</a>
-          <a tabIndex="-1">iPad</a>
-          <a tabIndex="-1">iMac</a>
+          <a tabIndex={-1}>iPhone</a>
+          <a tabIndex={-1}>iPad</a>
+          <a tabIndex={-1}>iMac</a>
         </p>
         <Info title="Tip!">
           <p>
@@ -286,7 +286,7 @@ const STEPS = [
   },
 ];
 
-export default () =>
+export default (): string =>
   render(
     <Page
       title="Link Hints Tutorial"
@@ -366,7 +366,13 @@ function Intro() {
   );
 }
 
-function Info({ title, children }: { title: string; children: React.VNode }) {
+function Info({
+  title,
+  children,
+}: {
+  title: string;
+  children: ComponentChildren;
+}) {
   return (
     <div className="Info">
       <h3>ℹ️ {title}</h3>
@@ -379,7 +385,7 @@ function Pagination() {
   return (
     <p className="Pagination">
       {Array.from({ length: 12 }, (_, index) => (
-        <a tabIndex="-1">{index + 1}</a>
+        <a tabIndex={-1}>{index + 1}</a>
       ))}
     </p>
   );

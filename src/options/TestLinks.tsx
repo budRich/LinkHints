@@ -1,15 +1,17 @@
-import * as React from "preact";
+import { h, VNode } from "preact";
 import { useState } from "preact/hooks";
 
 import TestLink from "./TestLink";
 
-export default function TestLinks() {
+export default function TestLinks(): VNode {
   const [keys, setKeys] = useState<Array<string>>([]);
 
   return (
     <div
       className="TestLinks SpacedVertical TextSmall"
-      onKeyDown={(event: SyntheticKeyboardEvent<HTMLDivElement>) => {
+      onKeyDown={(
+        event: h.JSX.TargetedEvent<HTMLDivElement, KeyboardEvent>
+      ) => {
         if (event.key.length === 1) {
           setKeys([...keys, event.key]);
         }

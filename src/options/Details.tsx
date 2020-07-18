@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { ComponentChildren, h, VNode } from "preact";
 
 import { classlist } from "../shared/main";
 
@@ -8,11 +8,11 @@ export default function Details({
   onChange,
   children,
 }: {
-  summary: React.ComponentChildren;
+  summary: ComponentChildren;
   open: boolean;
-  onChange: (boolean) => void;
-  children: React.ComponentChildren;
-}) {
+  onChange: (open: boolean) => void;
+  children: ComponentChildren;
+}): VNode {
   return (
     <div>
       <button

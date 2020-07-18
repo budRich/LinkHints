@@ -8,7 +8,7 @@
 import crypto from "crypto";
 import fs from "fs";
 import fsExtra from "fs-extra";
-import * as React from "preact";
+import { h, VNode } from "preact";
 import renderToString from "preact-render-to-string";
 
 import config from "../project.config";

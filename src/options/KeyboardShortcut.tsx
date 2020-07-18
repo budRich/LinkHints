@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { h, VNode } from "preact";
 
 import type { Shortcut } from "../shared/keyboard";
 
@@ -10,7 +10,7 @@ export default function KeyboardShortcut({
 }: {
   mac: boolean;
   shortcut: Partial<Shortcut>;
-}) {
+}): VNode {
   const { key = "" } = shortcut;
   return (
     <span className="KeyboardShortcut">
@@ -39,12 +39,12 @@ export default function KeyboardShortcut({
   );
 }
 
-export function hasShift(shortcut: Shortcut): boolean {
+export function hasShift(shortcut: Partial<Shortcut>): boolean {
   const { key = "" } = shortcut;
   return key.length === 1
     ? // For printable keys, guess that Shift is used for uppercase letters.
       key.toLowerCase() !== key.toUpperCase() && key.toUpperCase() === key
-    : shortcut.shift;
+    : shortcut.shift === true;
 }
 
 export function viewKey(key: string): string {

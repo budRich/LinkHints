@@ -2,7 +2,7 @@
 // Thanks to Rollup this does not blow up the bundle size.
 /* eslint-disable import/no-restricted-paths */
 
-import * as React from "preact";
+import { h, VNode } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
 import {
@@ -15,7 +15,6 @@ import {
   log,
   normalizeUnsignedFloat,
   normalizeUnsignedInt,
-  unreachable,
 } from "../shared/main";
 import { DEBUG_PREFIX } from "../shared/options";
 import { normalizeStringArray, TweakableValue } from "../shared/tweakable";
@@ -47,9 +46,9 @@ export default function Tweakable({
   before,
   onUpdate,
 }: {
-  before?: React.ComponentChildren;
+  before?: ComponentChildren;
   onUpdate: () => void;
-}) {
+}): VNode {
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
 
@@ -108,7 +107,7 @@ function TweakableField<T extends TweakableValue>({
   defaultValue: T;
   changed: boolean;
   error: string | undefined;
-}) {
+}): VNode {
   const fullKey = `${DEBUG_PREFIX}${namespace}.${name}`;
 
   const reset = () => {
@@ -244,6 +243,7 @@ function TweakableField<T extends TweakableValue>({
       break;
 
     default:
+      // TODO: unreachable
       unreachable(value.type, value);
   }
 

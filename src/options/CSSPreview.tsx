@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { h, VNode } from "preact";
 import Shadow from "preact-shadow-root";
 import { useEffect, useRef, useState } from "preact/hooks";
 
@@ -64,9 +64,9 @@ export default function CSSPreview({
   chars: string;
   css: string;
   peek: boolean;
-}) {
-  const containerRef = useRef();
-  const filterByTextRef = useRef();
+}): VNode {
+  const containerRef = useRef<HTMLDivElement>();
+  const filterByTextRef = useRef<HTMLDivElement>();
 
   const [textRects, setTextRects] = useState<Array<Box>>([]);
 

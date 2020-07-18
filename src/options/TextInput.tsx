@@ -1,4 +1,4 @@
-import * as React from "preact";
+import { h, VNode } from "preact";
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 
 import { classlist, timeout } from "../shared/main";
@@ -6,6 +6,8 @@ import { classlist, timeout } from "../shared/main";
 const SAVE_TIMEOUT = 200; // ms
 
 type Reason = "input" | "blur";
+
+type Save = (string: string, reason: Reason) => void;
 
 export default function TextInput({
   savedValue,
@@ -15,14 +17,20 @@ export default function TextInput({
   className = "",
   onKeyDown,
   ...restProps
-}: {
-  savedValue: string;
-  normalize?: (string) => string;
-  save?: (string, Reason) => void;
-  textarea?: boolean;
-  className?: string;
-  onKeyDown?: (event: SyntheticKeyboardEvent<HTMLInputElement>) => void;
-}) {
+}: h.JSX.HTMLAttributes<HTMLInputElement> &
+  h.JSX.HTMLAttributes<HTMLTextAreaElement> & {
+    savedValue: string;
+    normalize?: (string: string) => string;
+    save?: Save;
+    textarea?: boolean;
+    className?: string;
+    onKeyDown?: (
+      event: h.JSX.TargetedEvent<
+        HTMLInputElement | HTMLTextAreaElement,
+        KeyboardEvent
+      >
+    ) => void;
+  }): VNode {
   const Tag = textarea ? "textarea" : "input";
   const readonly = saveProp == null;
 
@@ -31,14 +39,14 @@ export default function TextInput({
 
   const value = stateValue != null ? stateValue : savedValue;
 
-  const saveRef = useRef();
+  const saveRef = useRef<Save | undefined>();
   saveRef.current = saveProp;
 
   const normalizeRef = useRef(normalize);
   normalizeRef.current = normalize;
 
-  const selectionStartRef = useRef<number>(0);
-  const selectionEndRef = useRef<number>(0);
+  const selectionStartRef = useRef<number | null>(0);
+  const selectionEndRef = useRef<number | null>(0);
   const rootRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
   function storeSelection() {
@@ -99,7 +107,10 @@ export default function TextInput({
       value={value}
       spellCheck="false"
       onInput={(
-        event: SyntheticInputEvent<HTMLInputElement | HTMLTextAreaElement>
+        event: h.JSX.TargetedEvent<
+          HTMLInputElement | HTMLTextAreaElement,
+          Event
+        >
       ) => {
         if (readonly) {
           // This is like the `readonly` attribute, but with a visible cursor,
@@ -107,10 +118,15 @@ export default function TextInput({
           event.currentTarget.value = value;
           restoreSelection();
         } else {
-          setStateValue(event.target.value);
+          setStateValue(event.currentTarget.value);
         }
       }}
-      onKeyDown={(event) => {
+      onKeyDown={(
+        event: h.JSX.TargetedEvent<
+          HTMLInputElement | HTMLTextAreaElement,
+          KeyboardEvent
+        >
+      ) => {
         storeSelection();
         if (onKeyDown != null) {
           onKeyDown(event);
