@@ -2346,8 +2346,7 @@ function getLinkElementType(element: HTMLAnchorElement): ElementType {
 }
 
 function isDisabled(element: HTMLElement): boolean {
-  // $FlowIgnore: Not all HTMLElements have the `disabled` property, but for performance we don’t check.
-  return element.disabled === true;
+  return isUnknownDict(element) && element.disabled === true;
 }
 
 // If `event` originates from an open shadow root, `event.target` is the same as
