@@ -138,7 +138,7 @@ type State = {
 export default class OptionsProgram extends Component<Props, State> {
   resets: Resets = new Resets();
   hiddenErrors: Array<string> = [];
-  keysTableRef = createRef<{ current: HTMLDivElement | null }>();
+  keysTableRef = createRef<HTMLDivElement>();
   hasRestoredPosition = false;
 
   state: State = {
@@ -488,7 +488,9 @@ export default class OptionsProgram extends Component<Props, State> {
                     <select
                       style={{ flexGrow: 1 }}
                       value={selectedIndex}
-                      onChange={(event: SyntheticEvent<HTMLSelectElement>) => {
+                      onChange={(
+                        event: h.JSX.TargetedEvent<HTMLSelectElement, Event>
+                      ) => {
                         const index = Number(event.currentTarget.value);
                         const chars =
                           index >= 0 && index < charsPresets.length
@@ -562,7 +564,9 @@ export default class OptionsProgram extends Component<Props, State> {
                       type="checkbox"
                       id={id}
                       checked={options.autoActivate}
-                      onChange={(event: SyntheticEvent<HTMLInputElement>) => {
+                      onChange={(
+                        event: h.JSX.TargetedEvent<HTMLInputElement, Event>
+                      ) => {
                         this.saveOptions({
                           autoActivate: event.currentTarget.checked,
                         });
@@ -691,7 +695,10 @@ export default class OptionsProgram extends Component<Props, State> {
                               type="checkbox"
                               value={keyTranslationsInput.testOnly}
                               onChange={(
-                                event: SyntheticEvent<HTMLInputElement>
+                                event: h.JSX.TargetedEvent<
+                                  HTMLInputElement,
+                                  Event
+                                >
                               ) => {
                                 this.setState({
                                   keyTranslationsInput: {
@@ -707,7 +714,7 @@ export default class OptionsProgram extends Component<Props, State> {
                     >
                       <textarea
                         id={id}
-                        spellCheck="false"
+                        spellcheck={false}
                         className="TextSmall"
                         style={{ resize: "none" }}
                         placeholder={
@@ -717,8 +724,9 @@ export default class OptionsProgram extends Component<Props, State> {
                         }
                         value={keyTranslationsInput.text}
                         onInput={(
-                          event: SyntheticInputEvent<
-                            HTMLInputElement | HTMLTextAreaElement
+                          event: h.JSX.TargetedEvent<
+                            HTMLInputElement | HTMLTextAreaElement,
+                            Event
                           >
                         ) => {
                           event.currentTarget.value = keyTranslationsInput.text;
@@ -1104,7 +1112,7 @@ export default class OptionsProgram extends Component<Props, State> {
                         <select
                           value={cssSuggestion}
                           onChange={(
-                            event: SyntheticEvent<HTMLSelectElement>
+                            event: h.JSX.TargetedEvent<HTMLSelectElement, Event>
                           ) => {
                             this.setState({
                               cssSuggestion: event.currentTarget.value,
@@ -1165,7 +1173,9 @@ export default class OptionsProgram extends Component<Props, State> {
                       <input
                         type="checkbox"
                         value={peek}
-                        onChange={(event: SyntheticEvent<HTMLInputElement>) => {
+                        onChange={(
+                          event: h.JSX.TargetedEvent<HTMLInputElement, Event>
+                        ) => {
                           this.setState({ peek: event.currentTarget.checked });
                         }}
                       />
@@ -1268,7 +1278,7 @@ export default class OptionsProgram extends Component<Props, State> {
                           value={options.logLevel}
                           style={{ width: "50%" }}
                           onChange={(
-                            event: SyntheticEvent<HTMLSelectElement>
+                            event: h.JSX.TargetedEvent<HTMLSelectElement, Event>
                           ) => {
                             const { value } = event.currentTarget;
                             try {
@@ -1479,9 +1489,8 @@ export default class OptionsProgram extends Component<Props, State> {
     const keysTableRect = keysTable.getBoundingClientRect();
     const headingsHeight = Math.max(
       0,
-      ...Array.from(
-        keysTable.querySelectorAll("thead th"),
-        (th) => th.offsetHeight
+      ...Array.from(keysTable.querySelectorAll("thead th"), (th: Element) =>
+        th instanceof HTMLElement ? th.offsetHeight : 0
       )
     );
 
@@ -1600,11 +1609,9 @@ export default class OptionsProgram extends Component<Props, State> {
         }),
       ];
 
-      function count(updateStatus: UpdateStatus): number {
-        return results.filter(
-          ([updateStatus2]) => updateStatus2 === updateStatus
-        ).length;
-      }
+      const count = (updateStatus: UpdateStatus): number =>
+        results.filter(([updateStatus2]) => updateStatus2 === updateStatus)
+          .length;
 
       const newKeyTranslations = Object.fromEntries(
         results.map(([, code, pair]) => [code, pair])
@@ -1710,20 +1717,24 @@ function saveFile(content: string, fileName: string, contentType: string) {
 }
 
 function selectFile(accept: string): Promise<File> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = accept;
     input.onchange = () => {
       input.onchange = null;
-      resolve(input.files[0]);
+      if (input.files === null) {
+        reject(new Error("selectFile: input.files is null"));
+      } else {
+        resolve(input.files[0]);
+      }
     };
     input.dispatchEvent(new MouseEvent("click"));
   });
 }
 
 function readAsJson(file: File): Promise<unknown> {
-  return new Response(file).json();
+  return new Response(file).json() as Promise<unknown>;
 }
 
 function unknownDict(value: unknown): { [key: string]: unknown } {
@@ -1734,7 +1745,7 @@ function unknownDict(value: unknown): { [key: string]: unknown } {
 }
 
 function toISODateString(date: Date): string {
-  const pad = (num) => num.toString().padStart(2, "0");
+  const pad = (num: number) => num.toString().padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
     date.getDate()
   )}`;

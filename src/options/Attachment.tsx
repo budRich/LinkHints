@@ -11,6 +11,7 @@ export default function Attachment({
   label?: ComponentChildren;
   content?: ComponentChildren;
   children: ComponentChildren;
+  style?: { [key: string]: string | number };
 }): VNode {
   const Tag = label != null ? "label" : "span";
   return (
