@@ -2,7 +2,7 @@
 // Thanks to Rollup this does not blow up the bundle size.
 /* eslint-disable import/no-restricted-paths */
 
-import { h, VNode } from "preact";
+import { ComponentChildren, h, VNode } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
 import {
@@ -17,7 +17,12 @@ import {
   normalizeUnsignedInt,
 } from "../shared/main";
 import { DEBUG_PREFIX } from "../shared/options";
-import { normalizeStringArray, TweakableValue } from "../shared/tweakable";
+import {
+  normalizeStringArray,
+  TweakableMapping,
+  TweakableMeta,
+  TweakableValue,
+} from "../shared/tweakable";
 import {
   t as tElementManager,
   tMeta as tMetaElementManager,
@@ -27,7 +32,7 @@ import Field from "./Field";
 import StringSetEditor from "./StringSetEditor";
 import TextInput from "./TextInput";
 
-const ALL_TWEAKABLES = [
+const ALL_TWEAKABLES: Array<[TweakableMapping, TweakableMeta]> = [
   [tBackground, tMetaBackground],
   [tWorker, tMetaWorker],
   [tRenderer, tMetaRenderer],
@@ -93,7 +98,7 @@ export default function Tweakable({
   );
 }
 
-function TweakableField<T extends TweakableValue>({
+function TweakableField({
   namespace,
   name,
   value,
@@ -103,8 +108,8 @@ function TweakableField<T extends TweakableValue>({
 }: {
   namespace: string;
   name: string;
-  value: T;
-  defaultValue: T;
+  value: TweakableValue;
+  defaultValue: TweakableValue;
   changed: boolean;
   error: string | undefined;
 }): VNode {
@@ -300,8 +305,8 @@ export function getTweakableExport(): { [key: string]: unknown } {
 export function partitionTweakable(data: {
   [key: string]: unknown;
 }): [{ [key: string]: unknown }, { [key: string]: unknown }] {
-  const tweakableData = {};
-  const otherData = {};
+  const tweakableData: { [key: string]: unknown } = {};
+  const otherData: { [key: string]: unknown } = {};
 
   for (const [key, value] of Object.entries(data)) {
     if (ALL_KEYS.has(key)) {
