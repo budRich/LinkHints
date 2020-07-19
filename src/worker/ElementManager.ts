@@ -793,29 +793,31 @@ export default class ElementManager {
     }
   }
 
-  addOrRemoveElement(mutationType: MutationType, element: HTMLElement) {
+  addOrRemoveElement(mutationType: MutationType, element: HTMLElement): void {
     if (
       element instanceof HTMLIFrameElement ||
       element instanceof HTMLFrameElement
     ) {
-      switch (mutationType) {
-        case "added":
-          // In theory, this can lead to more than
-          // `maxIntersectionObservedElements` frames being tracked by the
-          // intersection observer, but in practice there are never that many
-          // frames. YAGNI.
-          this.frameIntersectionObserver.observe(element);
-          break;
-        case "removed":
-          this.frameIntersectionObserver.unobserve(element);
-          this.visibleFrames.delete(element); // Just to be sure.
-          break;
-        case "changed":
-          // Do nothing.
-          break;
-        default:
-          unreachable(mutationType);
-      }
+      ((): undefined => {
+        switch (mutationType) {
+          case "added":
+            // In theory, this can lead to more than
+            // `maxIntersectionObservedElements` frames being tracked by the
+            // intersection observer, but in practice there are never that many
+            // frames. YAGNI.
+            this.frameIntersectionObserver.observe(element);
+            return undefined;
+
+          case "removed":
+            this.frameIntersectionObserver.unobserve(element);
+            this.visibleFrames.delete(element); // Just to be sure.
+            return undefined;
+
+          case "changed":
+            // Do nothing.
+            return undefined;
+        }
+      })();
       return;
     }
 
@@ -907,84 +909,142 @@ export default class ElementManager {
 
       const item = this.queue.items[this.queue.index];
 
-      switch (item.type) {
-        // This case is really tricky as all of the loops need to be able to
-        // resume where they were during the last idle callback. That’s why we
-        // mutate stuff on the current item, saving the indexes for the next
-        // idle callback. Be careful not to cause duplicate work.
-        case "Records": {
-          const startRecordIndex = item.recordIndex;
+      const timesUp = ((): boolean => {
+        switch (item.type) {
+          // This case is really tricky as all of the loops need to be able to
+          // resume where they were during the last idle callback. That’s why we
+          // mutate stuff on the current item, saving the indexes for the next
+          // idle callback. Be careful not to cause duplicate work.
+          case "Records": {
+            const startRecordIndex = item.recordIndex;
 
-          for (; item.recordIndex < item.records.length; item.recordIndex++) {
-            if (
-              item.recordIndex > startRecordIndex &&
-              deadline.timeRemaining() <= 0
-            ) {
-              this.requestIdleCallback();
-              return;
-            }
+            for (; item.recordIndex < item.records.length; item.recordIndex++) {
+              if (
+                item.recordIndex > startRecordIndex &&
+                deadline.timeRemaining() <= 0
+              ) {
+                this.requestIdleCallback();
+                return true;
+              }
 
-            const record = item.records[item.recordIndex];
-            const startAddedNodeIndex = item.addedNodeIndex;
-            const startRemovedNodeIndex = item.removedNodeIndex;
+              const record = item.records[item.recordIndex];
+              const startAddedNodeIndex = item.addedNodeIndex;
+              const startRemovedNodeIndex = item.removedNodeIndex;
 
-            if (!item.removalsOnly) {
+              if (!item.removalsOnly) {
+                for (
+                  ;
+                  item.addedNodeIndex < record.addedNodes.length;
+                  item.addedNodeIndex++
+                ) {
+                  if (
+                    item.addedNodeIndex > startAddedNodeIndex &&
+                    deadline.timeRemaining() <= 0
+                  ) {
+                    this.requestIdleCallback();
+                    return true;
+                  }
+
+                  const element = record.addedNodes[item.addedNodeIndex];
+                  let { children } = item;
+
+                  if (children == null && element instanceof HTMLElement) {
+                    // When a streaming HTML chunk arrives, _all_ elements in it
+                    // will produce its own MutationRecord, even nested elements.
+                    // Parent elements come first. Since we do a
+                    // `element.querySelectorAll("*")` below, after processing the
+                    // first element we have already gone through that entire
+                    // subtree. So the next MutationRecord (for a child of the
+                    // first element) will be duplicate work. So if we’ve already
+                    // gone through an addition of an element in this queue,
+                    // simply skip to the next one.
+                    // When inserting elements with JavaScript, the number of
+                    // MutationRecords for an insert depends on how the code was
+                    // written. Every `.append()` on an element that is in the DOM
+                    // causes a record. But `.append()` on a non-yet-inserted
+                    // element does not. So we can’t simply skip the
+                    // `.querySelectorAll("*")` business.
+                    // It should be safe to keep the `.addedElements` set even
+                    // though the queue lives over time. If an already gone
+                    // through element is changed, that will cause removal or
+                    // attribute mutations, which will be run eventually.
+                    if (this.queue.addedElements.has(element)) {
+                      continue;
+                    }
+
+                    // In my testing on the single-page HTML specification (which
+                    // is huge!), `.getElementsByTagName("*")` is faster, but it’s
+                    // not like `.querySelectorAll("*")` is super slow. We can’t use
+                    // the former because it returns a live `HTMLCollection` which
+                    // mutates as the DOM mutates. If for example a bunch of nodes
+                    // are removed, `item.addedNodeIndex` could now be too far
+                    // ahead in the list, missing some added elements.
+                    children = element.querySelectorAll("*");
+                    item.children = children;
+
+                    this.addOrRemoveElement("added", element);
+                    this.queue.addedElements.add(element);
+
+                    if (deadline.timeRemaining() <= 0) {
+                      this.requestIdleCallback();
+                      return true;
+                    }
+                  }
+
+                  if (children != null && children.length > 0) {
+                    const startChildIndex = item.childIndex;
+                    for (
+                      ;
+                      item.childIndex < children.length;
+                      item.childIndex++
+                    ) {
+                      if (
+                        item.childIndex > startChildIndex &&
+                        deadline.timeRemaining() <= 0
+                      ) {
+                        this.requestIdleCallback();
+                        return true;
+                      }
+                      const child = children[item.childIndex];
+                      if (
+                        child instanceof HTMLElement &&
+                        !this.queue.addedElements.has(child)
+                      ) {
+                        this.addOrRemoveElement("added", child);
+                        this.queue.addedElements.add(child);
+                      }
+                    }
+                  }
+
+                  item.childIndex = 0;
+                  item.children = undefined;
+                }
+              }
+
               for (
                 ;
-                item.addedNodeIndex < record.addedNodes.length;
-                item.addedNodeIndex++
+                item.removedNodeIndex < record.removedNodes.length;
+                item.removedNodeIndex++
               ) {
                 if (
-                  item.addedNodeIndex > startAddedNodeIndex &&
+                  item.removedNodeIndex > startRemovedNodeIndex &&
                   deadline.timeRemaining() <= 0
                 ) {
                   this.requestIdleCallback();
-                  return;
+                  return true;
                 }
 
-                const element = record.addedNodes[item.addedNodeIndex];
+                const element = record.removedNodes[item.removedNodeIndex];
                 let { children } = item;
 
                 if (children == null && element instanceof HTMLElement) {
-                  // When a streaming HTML chunk arrives, _all_ elements in it
-                  // will produce its own MutationRecord, even nested elements.
-                  // Parent elements come first. Since we do a
-                  // `element.querySelectorAll("*")` below, after processing the
-                  // first element we have already gone through that entire
-                  // subtree. So the next MutationRecord (for a child of the
-                  // first element) will be duplicate work. So if we’ve already
-                  // gone through an addition of an element in this queue,
-                  // simply skip to the next one.
-                  // When inserting elements with JavaScript, the number of
-                  // MutationRecords for an insert depends on how the code was
-                  // written. Every `.append()` on an element that is in the DOM
-                  // causes a record. But `.append()` on a non-yet-inserted
-                  // element does not. So we can’t simply skip the
-                  // `.querySelectorAll("*")` business.
-                  // It should be safe to keep the `.addedElements` set even
-                  // though the queue lives over time. If an already gone
-                  // through element is changed, that will cause removal or
-                  // attribute mutations, which will be run eventually.
-                  if (this.queue.addedElements.has(element)) {
-                    continue;
-                  }
-
-                  // In my testing on the single-page HTML specification (which
-                  // is huge!), `.getElementsByTagName("*")` is faster, but it’s
-                  // not like `.querySelectorAll("*")` is super slow. We can’t use
-                  // the former because it returns a live `HTMLCollection` which
-                  // mutates as the DOM mutates. If for example a bunch of nodes
-                  // are removed, `item.addedNodeIndex` could now be too far
-                  // ahead in the list, missing some added elements.
                   children = element.querySelectorAll("*");
                   item.children = children;
-
-                  this.addOrRemoveElement("added", element);
-                  this.queue.addedElements.add(element);
-
+                  this.addOrRemoveElement("removed", element);
+                  this.queue.addedElements.delete(element);
                   if (deadline.timeRemaining() <= 0) {
                     this.requestIdleCallback();
-                    return;
+                    return true;
                   }
                 }
 
@@ -996,15 +1056,15 @@ export default class ElementManager {
                       deadline.timeRemaining() <= 0
                     ) {
                       this.requestIdleCallback();
-                      return;
+                      return true;
                     }
                     const child = children[item.childIndex];
-                    if (
-                      child instanceof HTMLElement &&
-                      !this.queue.addedElements.has(child)
-                    ) {
-                      this.addOrRemoveElement("added", child);
-                      this.queue.addedElements.add(child);
+                    if (child instanceof HTMLElement) {
+                      this.addOrRemoveElement("removed", child);
+                      // The same element might be added, removed and then added
+                      // again, all in the same queue. So unmark it as already gone
+                      // through so it can be re-added again.
+                      this.queue.addedElements.delete(child);
                     }
                   }
                 }
@@ -1012,108 +1072,58 @@ export default class ElementManager {
                 item.childIndex = 0;
                 item.children = undefined;
               }
-            }
 
-            for (
-              ;
-              item.removedNodeIndex < record.removedNodes.length;
-              item.removedNodeIndex++
-            ) {
-              if (
-                item.removedNodeIndex > startRemovedNodeIndex &&
-                deadline.timeRemaining() <= 0
-              ) {
-                this.requestIdleCallback();
-                return;
-              }
+              item.addedNodeIndex = 0;
+              item.removedNodeIndex = 0;
 
-              const element = record.removedNodes[item.removedNodeIndex];
-              let { children } = item;
-
-              if (children == null && element instanceof HTMLElement) {
-                children = element.querySelectorAll("*");
-                item.children = children;
-                this.addOrRemoveElement("removed", element);
-                this.queue.addedElements.delete(element);
-                if (deadline.timeRemaining() <= 0) {
-                  this.requestIdleCallback();
-                  return;
+              if (!item.removalsOnly && record.attributeName != null) {
+                const element = record.target;
+                if (element instanceof HTMLElement) {
+                  this.addOrRemoveElement("changed", element);
                 }
               }
-
-              if (children != null && children.length > 0) {
-                const startChildIndex = item.childIndex;
-                for (; item.childIndex < children.length; item.childIndex++) {
-                  if (
-                    item.childIndex > startChildIndex &&
-                    deadline.timeRemaining() <= 0
-                  ) {
-                    this.requestIdleCallback();
-                    return;
-                  }
-                  const child = children[item.childIndex];
-                  if (child instanceof HTMLElement) {
-                    this.addOrRemoveElement("removed", child);
-                    // The same element might be added, removed and then added
-                    // again, all in the same queue. So unmark it as already gone
-                    // through so it can be re-added again.
-                    this.queue.addedElements.delete(child);
-                  }
-                }
-              }
-
-              item.childIndex = 0;
-              item.children = undefined;
             }
 
-            item.addedNodeIndex = 0;
-            item.removedNodeIndex = 0;
-
-            if (!item.removalsOnly && record.attributeName != null) {
-              const element = record.target;
-              if (element instanceof HTMLElement) {
-                this.addOrRemoveElement("changed", element);
-              }
-            }
+            return false;
           }
-          break;
-        }
 
-        case "ClickableChanged": {
-          const element = item.target;
-          if (element instanceof HTMLElement) {
-            if (item.clickable) {
-              this.elementsWithClickListeners.add(element);
-            } else {
-              this.elementsWithClickListeners.delete(element);
-            }
-            this.addOrRemoveElement("changed", element);
-          }
-          break;
-        }
-
-        case "OverflowChanged": {
-          const element = item.target;
-          if (element instanceof HTMLElement) {
-            // An element might have `overflow-x: hidden; overflow-y: auto;`. The events
-            // don't tell which direction changed its overflow, so we must check that
-            // ourselves. We're only interested in elements with scrollbars, not with
-            // hidden overflow.
-            if (isScrollable(element)) {
-              if (!this.elementsWithScrollbars.has(element)) {
-                this.elementsWithScrollbars.add(element);
-                this.addOrRemoveElement("changed", element);
+          case "ClickableChanged": {
+            const element = item.target;
+            if (element instanceof HTMLElement) {
+              if (item.clickable) {
+                this.elementsWithClickListeners.add(element);
+              } else {
+                this.elementsWithClickListeners.delete(element);
               }
-            } else if (this.elementsWithScrollbars.has(element)) {
-              this.elementsWithScrollbars.delete(element);
               this.addOrRemoveElement("changed", element);
             }
+            return false;
           }
-          break;
-        }
 
-        default:
-          unreachable(item.type, item);
+          case "OverflowChanged": {
+            const element = item.target;
+            if (element instanceof HTMLElement) {
+              // An element might have `overflow-x: hidden; overflow-y: auto;`. The events
+              // don't tell which direction changed its overflow, so we must check that
+              // ourselves. We're only interested in elements with scrollbars, not with
+              // hidden overflow.
+              if (isScrollable(element)) {
+                if (!this.elementsWithScrollbars.has(element)) {
+                  this.elementsWithScrollbars.add(element);
+                  this.addOrRemoveElement("changed", element);
+                }
+              } else if (this.elementsWithScrollbars.has(element)) {
+                this.elementsWithScrollbars.delete(element);
+                this.addOrRemoveElement("changed", element);
+              }
+            }
+            return false;
+          }
+        }
+      })();
+
+      if (timesUp) {
+        return;
       }
     }
 

@@ -1,12 +1,13 @@
-const React = {
+const h = {
   createElement(
     tag: string,
     props:
-      | {
+      | ({
+          [prop: string]: string | undefined;
+        } & {
           className?: string | undefined;
           onClick?: ((event: MouseEvent) => unknown) | undefined;
-          [prop: string]: string | undefined;
-        }
+        })
       | undefined,
     ...children: Array<string | HTMLElement | boolean | undefined>
   ): HTMLElement {
@@ -43,4 +44,4 @@ const React = {
   },
 };
 
-export default React;
+export default h;

@@ -913,7 +913,7 @@ export default class OptionsProgram extends Component<Props, State> {
                                 )}
                               </div>
                             )}
-                            onChange={(open) => {
+                            onOpenChange={(open) => {
                               if (!open) {
                                 this.setState({
                                   keyboardDetect: undefined,
@@ -1400,7 +1400,7 @@ export default class OptionsProgram extends Component<Props, State> {
                             />
                           </div>
                         )}
-                        onChange={(open) => {
+                        onOpenChange={(open) => {
                           if (open) {
                             this.importOptions();
                           } else {

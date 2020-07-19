@@ -1,4 +1,4 @@
-import { h, VNode } from "preact";
+import { Component, ComponentChildren, h, VNode } from "preact";
 
 import {
   KeyboardAction,
@@ -41,23 +41,23 @@ type Props = {
   onAddChange: (open: boolean) => void;
 };
 
-type State = {
-  addingAction: KeyboardAction | undefined;
-  shortcutError:
-    | {
-        shortcut: Shortcut;
-        error: ShortcutError;
-      }
-    | undefined;
+type ShortcutErrorState = {
+  shortcut: Shortcut;
+  error: ShortcutError;
 };
 
-export default class KeyboardShortcuts extends React.Component<Props, State> {
-  state = {
+type State = {
+  addingAction: KeyboardAction | undefined;
+  shortcutError: ShortcutErrorState | undefined;
+};
+
+export default class KeyboardShortcuts extends Component<Props, State> {
+  state: State = {
     addingAction: undefined,
     shortcutError: undefined,
   };
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: Props): void {
     const {
       capturedKeypressWithTimestamp,
       mode,
@@ -90,7 +90,7 @@ export default class KeyboardShortcuts extends React.Component<Props, State> {
         shift: capturedKeypress.shift == null ? false : capturedKeypress.shift,
       };
 
-      const confirm = (newShortcutError) => {
+      const confirm = (newShortcutError: ShortcutErrorState) => {
         if (deepEqual(shortcutError, newShortcutError)) {
           this.saveMapping({
             shortcut,
@@ -321,7 +321,7 @@ export default class KeyboardShortcuts extends React.Component<Props, State> {
                               className="AddShortcutButton-button"
                               open={isAdding}
                               buttonContent={<strong>+</strong>}
-                              onChange={(open) => {
+                              onOpenChange={(open: boolean) => {
                                 this.setState({
                                   addingAction: open
                                     ? defaultMapping.action
@@ -426,7 +426,7 @@ function ShortcutErrorDisplay({
   mode: Mode;
   useKeyTranslations: boolean;
   error: ShortcutError;
-}) {
+}): VNode {
   switch (error.type) {
     case "UnrecognizedKey":
       return (
@@ -439,22 +439,19 @@ function ShortcutErrorDisplay({
       );
 
     case "MissingModifier":
-      if (error.shift) {
-        return (
-          <p>
-            <strong>
-              Only <KeyboardShortcut mac={mac} shortcut={{ key: "Escape" }} />{" "}
-              and <KeyboardShortcut mac={mac} shortcut={{ key: "F1" }} />
-              –
-              <KeyboardShortcut mac={mac} shortcut={{ key: "F12" }} /> can be
-              used with only{" "}
-              <KeyboardShortcut mac={mac} shortcut={{ key: "", shift: true }} />{" "}
-              for main keyboard shortcuts.
-            </strong>
-          </p>
-        );
-      }
-      return (
+      return error.shift ? (
+        <p>
+          <strong>
+            Only <KeyboardShortcut mac={mac} shortcut={{ key: "Escape" }} /> and{" "}
+            <KeyboardShortcut mac={mac} shortcut={{ key: "F1" }} />
+            –
+            <KeyboardShortcut mac={mac} shortcut={{ key: "F12" }} /> can be used
+            with only{" "}
+            <KeyboardShortcut mac={mac} shortcut={{ key: "", shift: true }} />{" "}
+            for main keyboard shortcuts.
+          </strong>
+        </p>
+      ) : (
         <p>
           <strong>Main keyboard shortcuts must use a modifier.</strong>
         </p>
@@ -545,9 +542,6 @@ function ShortcutErrorDisplay({
         </div>
       );
     }
-
-    default:
-      return unreachable(error.type, error);
   }
 }
 
@@ -648,9 +642,6 @@ export function describeKeyboardAction(
       return {
         name: "Swap which end of a text selection to work on",
       };
-
-    default:
-      return unreachable(action);
   }
 }
 
@@ -718,7 +709,7 @@ function getTextEditingShortcuts(mac: boolean): Array<Shortcut> {
     cmd = false,
     ctrl = false,
     shift = false,
-  }: Partial<Shortcut>): Shortcut {
+  }: Partial<Shortcut> & { key: string }): Shortcut {
     return { key, alt, cmd, ctrl, shift };
   }
 

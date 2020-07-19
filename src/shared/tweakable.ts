@@ -6,8 +6,8 @@ import {
   decodeUnsignedFloat,
   decodeUnsignedInt,
   deepEqual,
+  getErrorMessage,
   log,
-  unreachable,
 } from "./main";
 import { DEBUG_PREFIX } from "./options";
 
@@ -115,70 +115,69 @@ export function tweakable(
           continue;
         }
 
-        switch (original.type) {
-          case "UnsignedInt": {
-            const decoded = decodeUnsignedInt(value);
-            mapping[key] = {
-              type: "UnsignedInt",
-              value: decoded,
-            };
-            changed[key] = decoded !== original.value;
-            break;
-          }
+        ((): undefined => {
+          switch (original.type) {
+            case "UnsignedInt": {
+              const decoded = decodeUnsignedInt(value);
+              mapping[key] = {
+                type: "UnsignedInt",
+                value: decoded,
+              };
+              changed[key] = decoded !== original.value;
+              return undefined;
+            }
 
-          case "UnsignedFloat": {
-            const decoded = decodeUnsignedFloat(value);
-            mapping[key] = {
-              type: "UnsignedFloat",
-              value: decoded,
-            };
-            changed[key] = decoded !== original.value;
-            break;
-          }
+            case "UnsignedFloat": {
+              const decoded = decodeUnsignedFloat(value);
+              mapping[key] = {
+                type: "UnsignedFloat",
+                value: decoded,
+              };
+              changed[key] = decoded !== original.value;
+              return undefined;
+            }
 
-          case "StringSet": {
-            const decoded = decodeStringSet(string)(value);
-            mapping[key] = {
-              type: "StringSet",
-              value: decoded,
-            };
-            changed[key] = !equalStringSets(decoded, original.value);
-            break;
-          }
+            case "StringSet": {
+              const decoded = decodeStringSet(string)(value);
+              mapping[key] = {
+                type: "StringSet",
+                value: decoded,
+              };
+              changed[key] = !equalStringSets(decoded, original.value);
+              return undefined;
+            }
 
-          case "ElementTypeSet": {
-            const decoded: Set<ElementType> = decodeStringSet(
-              map(string, decodeElementType)
-            )(value);
-            mapping[key] = {
-              type: "ElementTypeSet",
-              value: decoded,
-            };
-            changed[key] = !equalStringSets(
-              new Set(decoded),
-              new Set(original.value)
-            );
-            break;
-          }
+            case "ElementTypeSet": {
+              const decoded: Set<ElementType> = decodeStringSet(
+                map(string, decodeElementType)
+              )(value);
+              mapping[key] = {
+                type: "ElementTypeSet",
+                value: decoded,
+              };
+              changed[key] = !equalStringSets(
+                new Set(decoded),
+                new Set(original.value)
+              );
+              return undefined;
+            }
 
-          case "SelectorString": {
-            const decoded = map(string, (val) => {
-              document.querySelector(val);
-              return val;
-            })(value);
-            mapping[key] = {
-              type: "SelectorString",
-              value: decoded,
-            };
-            changed[key] = decoded !== original.value;
-            break;
+            case "SelectorString": {
+              const decoded = map(string, (val) => {
+                document.querySelector(val);
+                return val;
+              })(value);
+              mapping[key] = {
+                type: "SelectorString",
+                value: decoded,
+              };
+              changed[key] = decoded !== original.value;
+              return undefined;
+            }
           }
-
-          default:
-            unreachable(original.type, original);
-        }
+        })();
       } catch (error) {
-        errors[key] = error.message;
+        errors[key] = getErrorMessage(error);
       }
     }
   }
@@ -194,7 +193,7 @@ export function tweakable(
       );
       update(data);
     })
-    .catch((error) => {
+    .catch((error: Error) => {
       log("error", prefix, "First load failed.", {
         namespace,
         mapping,

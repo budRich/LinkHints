@@ -501,85 +501,6 @@ export default class RendererProgram {
     const viewport = getViewport();
     const maybeNeedsMoveInsideViewport: Array<HTMLElement> = [];
 
-    const updateChild = (update: HintUpdate, child: HTMLElement): undefined => {
-      // Remember that `HIDDEN_CLASS` just sets `opacity: 0`, so rects will
-      // still be available. If that opacity is customized, the chars and
-      // position should still be correct.
-      switch (update.type) {
-        case "Hide":
-          child.classList.add(HIDDEN_CLASS);
-          return undefined;
-
-        case "UpdateContent": {
-          // Avoid unnecessary flashing in the devtools when inspecting the hints.
-          const zeroWidthSpace = "\u200B";
-          const needsTextUpdate =
-            child.textContent !==
-            `${update.matchedChars}${zeroWidthSpace}${update.restChars}`;
-
-          if (needsTextUpdate) {
-            emptyNode(child);
-          }
-
-          const hasMatchedChars = update.matchedChars !== "";
-
-          child.classList.toggle(HIDDEN_CLASS, update.hidden);
-          child.classList.toggle(HAS_MATCHED_CHARS_CLASS, hasMatchedChars);
-          child.classList.toggle(HIGHLIGHTED_HINT_CLASS, update.highlighted);
-
-          if (hasMatchedChars && needsTextUpdate) {
-            const matched = document.createElement("span");
-            matched.className = MATCHED_CHARS_CLASS;
-            matched.append(document.createTextNode(update.matchedChars));
-            child.append(matched);
-            this.maybeApplyStyles(matched);
-          }
-
-          if (enteredText !== this.enteredText) {
-            setStyles(child, {
-              // Only update `z-index` when the entered text chars have changed
-              // (that's the only time `z-index` _needs_ updating), to avoid
-              // hints rotating back when entering hint chars.
-              "z-index": (MAX_Z_INDEX - update.order).toString(),
-            });
-            // If the entered text chars have changed, the hints might have
-            // changed as well and might not fit inside the viewport.
-            maybeNeedsMoveInsideViewport.push(child);
-          }
-
-          if (needsTextUpdate) {
-            child.append(
-              document.createTextNode(`${zeroWidthSpace}${update.restChars}`)
-            );
-          }
-
-          return undefined;
-        }
-
-        case "UpdatePosition": {
-          child.classList.toggle(HIDDEN_CLASS, update.hidden);
-          child.classList.toggle(HIGHLIGHTED_HINT_CLASS, update.highlighted);
-          const { styles } = getHintPosition({
-            hintSize: this.hintSize,
-            hint: update.hint,
-            hintMeasurements: update.hintMeasurements,
-            viewport,
-          });
-          const needsUpdate = Object.entries(styles).some(
-            ([property, value]) =>
-              child.style.getPropertyValue(property) !== value
-          );
-          if (needsUpdate) {
-            // `update.order` could be used to update the z-index, but that is
-            // currently unused due to the hints rotation feature.
-            setStyles(child, styles);
-            maybeNeedsMoveInsideViewport.push(child);
-          }
-          return undefined;
-        }
-      }
-    };
-
     for (const update of updates) {
       const child = this.hints[update.index];
 
@@ -588,7 +509,84 @@ export default class RendererProgram {
         continue;
       }
 
-      updateChild(update, child);
+      ((): undefined => {
+        // Remember that `HIDDEN_CLASS` just sets `opacity: 0`, so rects will
+        // still be available. If that opacity is customized, the chars and
+        // position should still be correct.
+        switch (update.type) {
+          case "Hide":
+            child.classList.add(HIDDEN_CLASS);
+            return undefined;
+
+          case "UpdateContent": {
+            // Avoid unnecessary flashing in the devtools when inspecting the hints.
+            const zeroWidthSpace = "\u200B";
+            const needsTextUpdate =
+              child.textContent !==
+              `${update.matchedChars}${zeroWidthSpace}${update.restChars}`;
+
+            if (needsTextUpdate) {
+              emptyNode(child);
+            }
+
+            const hasMatchedChars = update.matchedChars !== "";
+
+            child.classList.toggle(HIDDEN_CLASS, update.hidden);
+            child.classList.toggle(HAS_MATCHED_CHARS_CLASS, hasMatchedChars);
+            child.classList.toggle(HIGHLIGHTED_HINT_CLASS, update.highlighted);
+
+            if (hasMatchedChars && needsTextUpdate) {
+              const matched = document.createElement("span");
+              matched.className = MATCHED_CHARS_CLASS;
+              matched.append(document.createTextNode(update.matchedChars));
+              child.append(matched);
+              this.maybeApplyStyles(matched);
+            }
+
+            if (enteredText !== this.enteredText) {
+              setStyles(child, {
+                // Only update `z-index` when the entered text chars have changed
+                // (that's the only time `z-index` _needs_ updating), to avoid
+                // hints rotating back when entering hint chars.
+                "z-index": (MAX_Z_INDEX - update.order).toString(),
+              });
+              // If the entered text chars have changed, the hints might have
+              // changed as well and might not fit inside the viewport.
+              maybeNeedsMoveInsideViewport.push(child);
+            }
+
+            if (needsTextUpdate) {
+              child.append(
+                document.createTextNode(`${zeroWidthSpace}${update.restChars}`)
+              );
+            }
+
+            return undefined;
+          }
+
+          case "UpdatePosition": {
+            child.classList.toggle(HIDDEN_CLASS, update.hidden);
+            child.classList.toggle(HIGHLIGHTED_HINT_CLASS, update.highlighted);
+            const { styles } = getHintPosition({
+              hintSize: this.hintSize,
+              hint: update.hint,
+              hintMeasurements: update.hintMeasurements,
+              viewport,
+            });
+            const needsUpdate = Object.entries(styles).some(
+              ([property, value]) =>
+                child.style.getPropertyValue(property) !== value
+            );
+            if (needsUpdate) {
+              // `update.order` could be used to update the z-index, but that is
+              // currently unused due to the hints rotation feature.
+              setStyles(child, styles);
+              maybeNeedsMoveInsideViewport.push(child);
+            }
+            return undefined;
+          }
+        }
+      })();
 
       // Hidden hints get negative z-index so that visible hints are always
       // shown on top.

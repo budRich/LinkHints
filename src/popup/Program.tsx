@@ -1,10 +1,20 @@
-import { addListener, bind, log, Resets, unreachable } from "../shared/main";
+import {
+  addListener,
+  bind,
+  getErrorMessage,
+  log,
+  Resets,
+} from "../shared/main";
 import type {
   FromBackground,
   FromPopup,
   ToBackground,
 } from "../shared/messages";
-import React from "./static-react";
+import h from "./static-preact";
+
+interface JSX {
+  IntrinsicElements: string;
+}
 
 const CONTAINER_ID = "container";
 
@@ -21,7 +31,7 @@ export default class PopupProgram {
     ]);
   }
 
-  async start() {
+  async start(): Promise<void> {
     this.resets.add(addListener(browser.runtime.onMessage, this.onMessage));
 
     this.sendMessage({ type: "PopupScriptAdded" });
@@ -29,15 +39,15 @@ export default class PopupProgram {
     try {
       this.debugInfo = await getDebugInfo();
     } catch (error) {
-      this.debugInfo = `Failed to get debug info: ${error.message}`;
+      this.debugInfo = `Failed to get debug info: ${getErrorMessage(error)}`;
     }
   }
 
-  stop() {
+  stop(): void {
     this.resets.reset();
   }
 
-  async sendMessage(message: FromPopup) {
+  async sendMessage(message: FromPopup): Promise<void> {
     log("log", "PopupProgram#sendMessage", message.type, message, this);
     await browser.runtime.sendMessage(wrapMessage(message));
   }
@@ -50,7 +60,7 @@ export default class PopupProgram {
   // script, which can receive messages from content scripts. So the
   // `FromBackground` type annotation isn't entirely true, but the
   // `wrappedMessage.type` check narrows the messages down correctly anyway.
-  onMessage(wrappedMessage: FromBackground) {
+  onMessage(wrappedMessage: FromBackground): undefined {
     if (wrappedMessage.type !== "ToPopup") {
       return;
     }
@@ -63,14 +73,11 @@ export default class PopupProgram {
       case "Init":
         log.level = message.logLevel;
         this.render({ isEnabled: message.isEnabled });
-        break;
-
-      default:
-        unreachable(message.type, message);
+        return undefined;
     }
   }
 
-  render({ isEnabled }: { isEnabled: boolean }) {
+  render({ isEnabled }: { isEnabled: boolean }): void {
     const previous = document.getElementById(CONTAINER_ID);
 
     if (previous != null) {

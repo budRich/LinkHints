@@ -3,24 +3,24 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 import { addEventListener, classlist, Resets } from "../shared/main";
 
-type OnChange = (open: boolean) => void;
+type OnOpenChange = (open: boolean) => void;
 
 export default function ButtonWithPopup({
   open: openProp,
   buttonContent,
   popupContent,
-  onChange,
+  onOpenChange,
   className = "",
   ...restProps
-}: {
+}: h.JSX.HTMLAttributes<HTMLButtonElement> & {
   buttonContent: ComponentChildren;
   popupContent: (actions: { close: () => void }) => VNode;
   open?: boolean;
-  onChange?: OnChange;
+  onOpenChange?: OnOpenChange;
   className?: string;
 }): VNode {
-  const onChangeRef = useRef<OnChange | undefined>();
-  onChangeRef.current = onChange;
+  const onOpenChangeRef = useRef<OnOpenChange | undefined>();
+  onOpenChangeRef.current = onOpenChange;
 
   const [openState, setOpenState] = useState<boolean>(false);
 
@@ -33,8 +33,8 @@ export default function ButtonWithPopup({
       if (openProp == null) {
         setOpenState(newOpen);
       }
-      if (onChangeRef.current != null) {
-        onChangeRef.current(newOpen);
+      if (onOpenChangeRef.current != null) {
+        onOpenChangeRef.current(newOpen);
       }
     },
     [openProp]

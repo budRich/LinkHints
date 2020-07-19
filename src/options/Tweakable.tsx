@@ -138,121 +138,121 @@ function TweakableField({
     onReset: reset,
   };
 
-  switch (value.type) {
-    case "UnsignedInt":
-      if (defaultValue.type === "UnsignedInt") {
-        return (
-          <Field
-            {...fieldProps}
-            render={({ id }) => (
-              <TextInput
-                id={id}
-                style={{ width: "50%" }}
-                savedValue={value.value.toString()}
-                normalize={(newValue) =>
-                  normalizeUnsignedInt(newValue, defaultValue.value)
-                }
-                save={(newValue) => {
-                  save(fullKey, Number(newValue));
-                }}
-              />
-            )}
-          />
-        );
-      }
-      break;
+  const field = ((): VNode | undefined => {
+    switch (value.type) {
+      case "UnsignedInt":
+        if (defaultValue.type === "UnsignedInt") {
+          return (
+            <Field
+              {...fieldProps}
+              render={({ id }) => (
+                <TextInput
+                  id={id}
+                  style={{ width: "50%" }}
+                  savedValue={value.value.toString()}
+                  normalize={(newValue) =>
+                    normalizeUnsignedInt(newValue, defaultValue.value)
+                  }
+                  save={(newValue) => {
+                    save(fullKey, Number(newValue));
+                  }}
+                />
+              )}
+            />
+          );
+        }
+        return undefined;
 
-    case "UnsignedFloat":
-      if (defaultValue.type === "UnsignedFloat") {
-        return (
-          <Field
-            {...fieldProps}
-            render={({ id }) => (
-              <TextInput
-                id={id}
-                style={{ width: "50%" }}
-                savedValue={value.value.toString()}
-                normalize={(newValue) =>
-                  normalizeUnsignedFloat(newValue, defaultValue.value)
-                }
-                save={(newValue) => {
-                  save(fullKey, Number(newValue));
-                }}
-              />
-            )}
-          />
-        );
-      }
-      break;
+      case "UnsignedFloat":
+        if (defaultValue.type === "UnsignedFloat") {
+          return (
+            <Field
+              {...fieldProps}
+              render={({ id }) => (
+                <TextInput
+                  id={id}
+                  style={{ width: "50%" }}
+                  savedValue={value.value.toString()}
+                  normalize={(newValue) =>
+                    normalizeUnsignedFloat(newValue, defaultValue.value)
+                  }
+                  save={(newValue) => {
+                    save(fullKey, Number(newValue));
+                  }}
+                />
+              )}
+            />
+          );
+        }
+        return undefined;
 
-    case "StringSet":
-      if (defaultValue.type === "StringSet") {
-        return (
-          <Field
-            {...fieldProps}
-            render={({ id }) => (
-              <StringSetEditor
-                id={id}
-                savedValue={value.value}
-                save={(newValue) => {
-                  save(fullKey, normalizeStringArray(newValue));
-                }}
-              />
-            )}
-          />
-        );
-      }
-      break;
+      case "StringSet":
+        if (defaultValue.type === "StringSet") {
+          return (
+            <Field
+              {...fieldProps}
+              render={({ id }) => (
+                <StringSetEditor
+                  id={id}
+                  savedValue={value.value}
+                  save={(newValue) => {
+                    save(fullKey, normalizeStringArray(newValue));
+                  }}
+                />
+              )}
+            />
+          );
+        }
+        return undefined;
 
-    case "ElementTypeSet":
-      if (defaultValue.type === "ElementTypeSet") {
-        return (
-          <Field
-            {...fieldProps}
-            render={({ id }) => (
-              <StringSetEditor
-                id={id}
-                savedValue={new Set(value.value)}
-                save={(newValue) => {
-                  save(fullKey, normalizeStringArray(newValue));
-                }}
-              />
-            )}
-          />
-        );
-      }
-      break;
+      case "ElementTypeSet":
+        if (defaultValue.type === "ElementTypeSet") {
+          return (
+            <Field
+              {...fieldProps}
+              render={({ id }) => (
+                <StringSetEditor
+                  id={id}
+                  savedValue={new Set(value.value)}
+                  save={(newValue) => {
+                    save(fullKey, normalizeStringArray(newValue));
+                  }}
+                />
+              )}
+            />
+          );
+        }
+        return undefined;
 
-    case "SelectorString":
-      if (defaultValue.type === "SelectorString") {
-        return (
-          <Field
-            {...fieldProps}
-            render={({ id }) => (
-              <TextInput
-                id={id}
-                style={{ width: "100%" }}
-                savedValue={value.value}
-                normalize={(newValue) => {
-                  const trimmed = newValue.trim();
-                  return trimmed === "" ? defaultValue.value : trimmed;
-                }}
-                save={(newValue) => {
-                  save(fullKey, newValue);
-                }}
-              />
-            )}
-          />
-        );
-      }
-      break;
+      case "SelectorString":
+        if (defaultValue.type === "SelectorString") {
+          return (
+            <Field
+              {...fieldProps}
+              render={({ id }) => (
+                <TextInput
+                  id={id}
+                  style={{ width: "100%" }}
+                  savedValue={value.value}
+                  normalize={(newValue) => {
+                    const trimmed = newValue.trim();
+                    return trimmed === "" ? defaultValue.value : trimmed;
+                  }}
+                  save={(newValue) => {
+                    save(fullKey, newValue);
+                  }}
+                />
+              )}
+            />
+          );
+        }
+        return undefined;
+    }
+  })();
 
-    default:
-      // TODO: unreachable
-      unreachable(value.type, value);
-  }
-
-  return (
+  return field !== undefined ? (
+    field
+  ) : (
     <Field
       {...fieldProps}
       span
