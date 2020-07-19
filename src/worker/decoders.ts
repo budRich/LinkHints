@@ -24,8 +24,8 @@ export type FrameMessage =
       viewports: Array<Box>;
     };
 
-export const decodeFrameMessage: Decoder<FrameMessage> = fields(
-  (field, fieldError) => {
+export const decodeFrameMessage = fields(
+  (field, fieldError): FrameMessage => {
     const type = field("type", string);
 
     switch (type) {
@@ -51,7 +51,7 @@ export const decodeFrameMessage: Decoder<FrameMessage> = fields(
 );
 
 const decodeViewports: Decoder<Array<Box>> = array(
-  autoRecord({
+  autoRecord<Box>({
     // A viewport of a frame can be partially off-screen.
     x: number,
     y: number,

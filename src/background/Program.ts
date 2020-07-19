@@ -60,7 +60,7 @@ import {
 import {
   decodeTabsPerf,
   MAX_PERF_ENTRIES,
-  Perf,
+  PerfItem,
   Stats,
   TabsPerf,
   TimeTracker,
@@ -76,7 +76,7 @@ type MessageInfo = {
 type TabState = {
   hintsState: HintsState;
   keyboardMode: KeyboardModeBackground;
-  perf: Perf;
+  perf: Array<PerfItem>;
   isOptionsPage: boolean;
   isPinned: boolean;
 };

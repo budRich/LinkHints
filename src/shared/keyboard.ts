@@ -87,7 +87,7 @@ export type Shortcut = {
   shift: boolean;
 };
 
-const decodeShortcut: Decoder<Shortcut> = autoRecord({
+const decodeShortcut = autoRecord<Shortcut>({
   key: string,
   alt: boolean,
   cmd: boolean,
@@ -154,17 +154,15 @@ export type KeyboardMapping = {
   action: KeyboardAction;
 };
 
-export const decodeKeyboardMapping: Decoder<KeyboardMapping> = autoRecord({
+export const decodeKeyboardMapping = autoRecord<KeyboardMapping>({
   shortcut: decodeShortcut,
   action: map(string, decodeKeyboardAction),
 });
 
-export const decodeKeyboardMappingWithModifiers: Decoder<KeyboardMapping> = autoRecord(
-  {
-    shortcut: map(decodeShortcut, requireModifier),
-    action: map(string, decodeKeyboardAction),
-  }
-);
+export const decodeKeyboardMappingWithModifiers = autoRecord<KeyboardMapping>({
+  shortcut: map(decodeShortcut, requireModifier),
+  action: map(string, decodeKeyboardAction),
+});
 
 export type KeyboardModeBackground =
   | { type: "FromHintsState" }

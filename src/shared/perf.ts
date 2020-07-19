@@ -1,8 +1,7 @@
-
 import {
-  Decoder,
   array,
   autoRecord,
+  Decoder,
   dict,
   number,
   pair,
@@ -16,16 +15,16 @@ export type Durations = Array<[string, number]>;
 export const decodeDurations: Decoder<Durations> = array(pair(string, number));
 
 export type Stats = {
-  url: string,
-  numTotalElements: number,
-  numTrackedElements: number,
-  numVisibleElements: number,
-  numVisibleFrames: number,
-  bailed: number,
-  durations: Durations,
+  url: string;
+  numTotalElements: number;
+  numTrackedElements: number;
+  numVisibleElements: number;
+  numVisibleFrames: number;
+  bailed: number;
+  durations: Durations;
 };
 
-export const decodeStats: Decoder<Stats> = autoRecord({
+export const decodeStats = autoRecord<Stats>({
   url: string,
   numTotalElements: number,
   numTrackedElements: number,
@@ -35,16 +34,16 @@ export const decodeStats: Decoder<Stats> = autoRecord({
   durations: decodeDurations,
 });
 
-export type Perf = Array<{
-  timeToFirstPaint: number,
-  timeToLastPaint: number,
-  topDurations: Durations,
-  collectStats: Array<Stats>,
-  renderDurations: Durations,
-}>;
+export type PerfItem = {
+  timeToFirstPaint: number;
+  timeToLastPaint: number;
+  topDurations: Durations;
+  collectStats: Array<Stats>;
+  renderDurations: Durations;
+};
 
-export const decodePerf: Decoder<Perf> = array(
-  autoRecord({
+export const decodePerf = array(
+  autoRecord<PerfItem>({
     timeToFirstPaint: number,
     timeToLastPaint: number,
     topDurations: decodeDurations,
@@ -53,15 +52,15 @@ export const decodePerf: Decoder<Perf> = array(
   })
 );
 
-export type TabsPerf = { [tabId: string]: Perf };
+export type TabsPerf = { [tabId: string]: Array<PerfItem> };
 
 export const decodeTabsPerf: Decoder<TabsPerf> = dict(decodePerf);
 
 export class TimeTracker {
   _durations: Durations = [];
-  _current: ?{ label: string, timestamp: number } = undefined;
+  _current: { label: string; timestamp: number } | undefined = undefined;
 
-  start(label: string) {
+  start(label: string): void {
     this.stop();
 
     this._current = {
@@ -70,7 +69,7 @@ export class TimeTracker {
     };
   }
 
-  stop() {
+  stop(): void {
     const current = this._current;
     if (current == null) {
       return;

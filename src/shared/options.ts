@@ -55,39 +55,41 @@ export type PartialOptions = Partial<Options>;
 export type FlatOptions = { [key: string]: unknown };
 
 export function makeOptionsDecoder(defaults: Options): Decoder<Options> {
-  return fields((field) => ({
-    chars: field("chars", map(string, validateChars), {
-      default: defaults.chars,
-    }),
-    autoActivate: field("autoActivate", boolean, {
-      default: defaults.autoActivate,
-    }),
-    overTypingDuration: field("overTypingDuration", decodeUnsignedInt, {
-      default: defaults.overTypingDuration,
-    }),
-    css: field("css", string, {
-      default: defaults.css,
-    }),
-    logLevel: field("logLevel", map(string, decodeLogLevel), {
-      default: defaults.logLevel,
-    }),
-    useKeyTranslations: field("useKeyTranslations", boolean, {
-      default: defaults.useKeyTranslations,
-    }),
-    keyTranslations: field("keyTranslations", dict(decodeKeyPair, "skip"), {
-      default: defaults.keyTranslations,
-    }),
-    normalKeyboardShortcuts: field(
-      "normalKeyboardShortcuts",
-      array(decodeKeyboardMappingWithModifiers, "skip"),
-      { default: defaults.normalKeyboardShortcuts }
-    ),
-    hintsKeyboardShortcuts: field(
-      "hintsKeyboardShortcuts",
-      array(decodeKeyboardMapping, "skip"),
-      { default: defaults.hintsKeyboardShortcuts }
-    ),
-  }));
+  return fields(
+    (field): Options => ({
+      chars: field("chars", map(string, validateChars), {
+        default: defaults.chars,
+      }),
+      autoActivate: field("autoActivate", boolean, {
+        default: defaults.autoActivate,
+      }),
+      overTypingDuration: field("overTypingDuration", decodeUnsignedInt, {
+        default: defaults.overTypingDuration,
+      }),
+      css: field("css", string, {
+        default: defaults.css,
+      }),
+      logLevel: field("logLevel", map(string, decodeLogLevel), {
+        default: defaults.logLevel,
+      }),
+      useKeyTranslations: field("useKeyTranslations", boolean, {
+        default: defaults.useKeyTranslations,
+      }),
+      keyTranslations: field("keyTranslations", dict(decodeKeyPair, "skip"), {
+        default: defaults.keyTranslations,
+      }),
+      normalKeyboardShortcuts: field(
+        "normalKeyboardShortcuts",
+        array(decodeKeyboardMappingWithModifiers, "skip"),
+        { default: defaults.normalKeyboardShortcuts }
+      ),
+      hintsKeyboardShortcuts: field(
+        "hintsKeyboardShortcuts",
+        array(decodeKeyboardMapping, "skip"),
+        { default: defaults.hintsKeyboardShortcuts }
+      ),
+    })
+  );
 }
 
 const MIN_CHARS = 2;
