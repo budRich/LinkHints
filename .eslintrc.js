@@ -113,8 +113,10 @@ module.exports = {
     },
   ],
   settings: {
+    // Copied from: https://github.com/preactjs/eslint-config-preact/blob/6687c4931b3df7d52cdf6fca98a20d2093eb81de/index.js#L50-L56
     react: {
-      version: "16.10",
+      pragma: "h",
+      version: "16.0",
     },
   },
 };
