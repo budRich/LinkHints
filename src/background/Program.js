@@ -996,7 +996,6 @@ export default class BackgroundProgram {
       }
 
       case "URLHandler": {
-
         // FIX-ME: get PORT (8054), secret password and "gurl"
         //         from settings
 
