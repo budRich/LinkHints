@@ -995,11 +995,11 @@ export default class BackgroundProgram {
         return false;
       }
 
-      case "UrlHandler": {
+      case "URLHandler": {
 
         // FIX-ME: get PORT (8054), secret password and "gurl"
         //         from settings
-        
+
         const cmd = `secretpassword\x1cgurl\x1c${url || ""}`;
         const xhr = new XMLHttpRequest();
 
@@ -1583,6 +1583,10 @@ export default class BackgroundProgram {
 
       case "EnterHintsMode_ManyTab":
         enterHintsMode("ManyTab");
+        break;
+
+      case "EnterHintsMode_URLHandler":
+        enterHintsMode("URLHandler");
         break;
 
       case "EnterHintsMode_Select":
@@ -2264,6 +2268,9 @@ function getElementTypes(mode: HintsMode): ElementTypes {
     case "BackgroundTab":
       return TAB_TYPES;
 
+    case "URLHandler":
+      return TAB_TYPES;
+
     case "ForegroundTab":
       return TAB_TYPES;
 
@@ -2289,6 +2296,9 @@ function getCombiningUrl(mode: HintsMode, element: ElementWithHint): ?string {
         : undefined;
 
     case "BackgroundTab":
+      return element.url;
+
+    case "URLHandler":
       return element.url;
 
     case "ForegroundTab":
