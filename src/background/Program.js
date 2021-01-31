@@ -997,6 +997,9 @@ export default class BackgroundProgram {
 
       case "UrlHandler": {
 
+        // FIX-ME: get PORT (8054), secret password and "gurl"
+        //         from settings
+        
         const cmd = `secretpassword\x1cgurl\x1c${url || ""}`;
         const xhr = new XMLHttpRequest();
 
