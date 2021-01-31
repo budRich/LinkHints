@@ -15,6 +15,7 @@ export type KeyboardAction =
   | "EnterHintsMode_BackgroundTab"
   | "EnterHintsMode_ForegroundTab"
   | "EnterHintsMode_ManyClick"
+  | "EnterHintsMode_URLHandler"
   | "EnterHintsMode_ManyTab"
   | "EnterHintsMode_Select"
   | "ReverseSelection"
@@ -34,6 +35,7 @@ export function decodeKeyboardAction(type: string): KeyboardAction {
     case "EnterHintsMode_BackgroundTab":
     case "EnterHintsMode_ForegroundTab":
     case "EnterHintsMode_ManyClick":
+    case "EnterHintsMode_URLHandler":
     case "EnterHintsMode_ManyTab":
     case "EnterHintsMode_Select":
     case "ReverseSelection":
@@ -182,6 +184,7 @@ export type KeyboardModeWorker =
 export type HintsMode =
   | "Click"
   | "ManyClick"
+  | "URLHandler"
   | "ManyTab"
   | "BackgroundTab"
   | "ForegroundTab"
