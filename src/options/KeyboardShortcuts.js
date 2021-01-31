@@ -569,6 +569,11 @@ export function describeKeyboardAction(
         name: "Click",
       };
 
+    case "EnterHintsMode_URLHandler":
+      return {
+        name: "External URL handler",
+      };
+
     case "EnterHintsMode_ManyClick":
       return {
         name: "Click many",
