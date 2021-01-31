@@ -995,6 +995,21 @@ export default class BackgroundProgram {
         return false;
       }
 
+      case "UrlHandler": {
+
+        const cmd = `secretpassword\x1cgurl\x1c${url || ""}`;
+        const xhr = new XMLHttpRequest();
+
+        xhr.open("POST", "http://127.0.0.1:8054");
+        xhr.send(
+          JSON.stringify({
+            data: cmd,
+          })
+        );
+
+        return true;
+      }
+
       case "BackgroundTab":
         if (url == null) {
           log("error", "Cannot open background tab due to missing URL", match);
