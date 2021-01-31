@@ -22,7 +22,7 @@
 html {
   background-color: lightgrey;
   color: black;
-  font-family: system-ui;
+  font-family: sans-serif;
   font-size: var(--font-size);
   line-height: 1.25;
 }
