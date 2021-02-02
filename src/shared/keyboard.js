@@ -16,8 +16,10 @@ export type KeyboardAction =
   | "EnterHintsMode_ForegroundTab"
   | "EnterHintsMode_ManyClick"
   | "EnterHintsMode_URLHandler"
+  | "CurrentPage_URLHandler"
   | "EnterHintsMode_ManyTab"
   | "EnterHintsMode_Select"
+  | "YankCurrentURL"
   | "ReverseSelection"
   | "Escape"
   | "ActivateHint"
@@ -36,6 +38,8 @@ export function decodeKeyboardAction(type: string): KeyboardAction {
     case "EnterHintsMode_ForegroundTab":
     case "EnterHintsMode_ManyClick":
     case "EnterHintsMode_URLHandler":
+    case "CurrentPage_URLHandler":
+    case "YankCurrentURL":
     case "EnterHintsMode_ManyTab":
     case "EnterHintsMode_Select":
     case "ReverseSelection":

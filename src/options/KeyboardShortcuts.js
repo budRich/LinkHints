@@ -571,7 +571,17 @@ export function describeKeyboardAction(
 
     case "EnterHintsMode_URLHandler":
       return {
-        name: "External URL handler",
+        name: "External URL handler (from hint)",
+      };
+
+    case "CurrentPage_URLHandler":
+      return {
+        name: "External URL handler (current page)",
+      };
+
+    case "YankCurrentURL":
+      return {
+        name: "Yank current page URL",
       };
 
     case "EnterHintsMode_ManyClick":

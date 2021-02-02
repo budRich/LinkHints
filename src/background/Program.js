@@ -63,7 +63,7 @@ import {
   MAX_PERF_ENTRIES,
   TimeTracker,
 } from "../shared/perf";
-import { tweakable, unsignedInt } from "../shared/tweakable";
+import { selectorString, tweakable, unsignedInt } from "../shared/tweakable";
 
 type MessageInfo = {
   tabId: number,
@@ -171,6 +171,12 @@ export const t = {
 
   // How long a matched/activated hint should show as highlighted.
   MATCH_HIGHLIGHT_DURATION: unsignedInt(200), // ms
+
+  // External URL handler server PORT.
+  URL_HANDLER_SERVER_PORT: unsignedInt(8054),
+
+  URL_HANDLER_PASSWORD: selectorString("secretpassword"),
+  URL_HANDLER_COMMAND: selectorString("gurl"),
 };
 
 export const tMeta = tweakable("Background", t);
@@ -996,19 +1002,7 @@ export default class BackgroundProgram {
       }
 
       case "URLHandler": {
-        // FIX-ME: get PORT (8054), secret password and "gurl"
-        //         from settings
-
-        const cmd = `secretpassword\x1cgurl\x1c${url || ""}`;
-        const xhr = new XMLHttpRequest();
-
-        xhr.open("POST", "http://127.0.0.1:8054");
-        xhr.send(
-          JSON.stringify({
-            data: cmd,
-          })
-        );
-
+        externalUrlHandler(url || "");
         return true;
       }
 
@@ -1587,6 +1581,32 @@ export default class BackgroundProgram {
       case "EnterHintsMode_URLHandler":
         enterHintsMode("URLHandler");
         break;
+
+      case "CurrentPage_URLHandler": {
+        browser.tabs.get(info.tabId).then((tab) => {
+          externalUrlHandler(tab.url || "");
+        });
+
+        break;
+      }
+
+      case "YankCurrentURL": {
+        // navigator.clipboard.writeText does not
+        // work in chrome (chromium bug)
+        // using this ugly clipboard hack till fixed
+        browser.tabs.get(info.tabId).then((tab) => {
+          const tocb = document.createElement("textarea");
+          tocb.textContent = tab.url || "";
+          if (document.body) {
+            document.body.appendChild(tocb);
+            tocb.select();
+            document.execCommand("copy");
+          }
+          tocb.remove();
+        });
+
+        break;
+      }
 
       case "EnterHintsMode_Select":
         enterHintsMode("Select");
@@ -2774,6 +2794,21 @@ function mergeElements(
       hint: element.hint,
     };
   });
+}
+
+function externalUrlHandler(url: string) {
+  const port = t.URL_HANDLER_SERVER_PORT.value;
+  const pswd = t.URL_HANDLER_PASSWORD.value;
+  const command = t.URL_HANDLER_COMMAND.value;
+  const cmd = `${pswd}\x1c${command}\x1c${url || ""}`;
+  const xhr = new XMLHttpRequest();
+
+  xhr.open("POST", `http://127.0.0.1:${port}`);
+  xhr.send(
+    JSON.stringify({
+      data: cmd,
+    })
+  );
 }
 
 function matchesText(passedText: string, words: Array<string>): boolean {

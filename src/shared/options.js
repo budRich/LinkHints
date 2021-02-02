@@ -172,6 +172,14 @@ export function getDefaults({ mac }: { mac: boolean }): Options {
         action: "EnterHintsMode_URLHandler",
       },
       {
+        shortcut: mainShortcut("S"),
+        action: "CurrentPage_URLHandler",
+      },
+      {
+        shortcut: mainShortcut("y"),
+        action: "YankCurrentURL",
+      },
+      {
         shortcut: mainShortcut("k"),
         action: "EnterHintsMode_BackgroundTab",
       },
