@@ -63,7 +63,7 @@ import {
   MAX_PERF_ENTRIES,
   TimeTracker,
 } from "../shared/perf";
-import { tweakable, unsignedInt } from "../shared/tweakable";
+import { selectorString, tweakable, unsignedInt } from "../shared/tweakable";
 
 type MessageInfo = {
   tabId: number,
@@ -171,6 +171,10 @@ export const t = {
 
   // How long a matched/activated hint should show as highlighted.
   MATCH_HIGHLIGHT_DURATION: unsignedInt(200), // ms
+
+  URL_HANDLER_SERVER_PORT: unsignedInt(8054),
+  URL_HANDLER_PASSWORD: selectorString("secretpassword"),
+  URL_HANDLER_COMMAND: selectorString("gurl"),
 };
 
 export const tMeta = tweakable("Background", t);
@@ -1571,6 +1575,19 @@ export default class BackgroundProgram {
         enterHintsMode("Select");
         break;
 
+
+      case "EnterHintsMode_URLHandler":
+        enterHintsMode("URLHandler");
+        break;
+
+      case "CurrentPage_URLHandler": {
+        browser.tabs.get(info.tabId).then((tab) => {
+          externalUrlHandler(tab.url || "");
+        });
+
+        break;
+      }
+      
       case "ExitHintsMode":
         this.exitHintsMode({ tabId: info.tabId });
         break;
@@ -2747,6 +2764,21 @@ function mergeElements(
       hint: element.hint,
     };
   });
+}
+
+function externalUrlHandler(url: string) {
+  const port = t.URL_HANDLER_SERVER_PORT.value;
+  const pswd = t.URL_HANDLER_PASSWORD.value;
+  const command = t.URL_HANDLER_COMMAND.value;
+  const cmd = `${pswd}\x1c${command}\x1c${url || ""}`;
+  const xhr = new XMLHttpRequest();
+
+  xhr.open("POST", `http://127.0.0.1:${port}`);
+  xhr.send(
+    JSON.stringify({
+      data: cmd,
+    })
+  );
 }
 
 function matchesText(passedText: string, words: Array<string>): boolean {
