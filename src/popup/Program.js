@@ -94,7 +94,7 @@ export default class PopupProgram {
           </h1>
 
           <p>
-            <a href={META_HOMEPAGE}>Homepage</a>
+            <a href={META_HOMEPAGE} target="blank">Homepage</a>
           </p>
         </div>
 
