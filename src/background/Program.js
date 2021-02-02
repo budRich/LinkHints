@@ -1595,6 +1595,11 @@ export default class BackgroundProgram {
         );
         break;
 
+      case "YankCurrentURL":
+        yankCurrentURL(info.tabId);
+        break;
+
+
       case "RefreshHints": {
         const tabState = this.tabState.get(info.tabId);
         if (tabState == null) {
@@ -1650,6 +1655,7 @@ export default class BackgroundProgram {
           alt: false,
         });
         break;
+
 
       case "ActivateHintAlt":
         this.handleHintInput(info.tabId, timestamp, {
@@ -2752,4 +2758,20 @@ function mergeElements(
 function matchesText(passedText: string, words: Array<string>): boolean {
   const text = passedText.toLowerCase();
   return words.every((word) => text.includes(word));
+}
+
+function yankCurrentURL(tabId: number) {
+  // navigator.clipboard.writeText does not
+  // work in chrome (chromium bug)
+  // using this ugly clipboard hack till fixed
+  browser.tabs.get(tabId).then((tab) => {
+    const tocb = document.createElement("textarea");
+    tocb.textContent = tab.url || "";
+    if (document.body) {
+      document.body.appendChild(tocb);
+      tocb.select();
+      document.execCommand("copy");
+    }
+    tocb.remove();
+  });
 }
