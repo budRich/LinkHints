@@ -18,6 +18,7 @@ export type KeyboardAction =
   | "EnterHintsMode_ManyTab"
   | "EnterHintsMode_Select"
   | "ReverseSelection"
+  | "YankCurrentURL"
   | "Escape"
   | "ActivateHint"
   | "ActivateHintAlt"
@@ -37,6 +38,7 @@ export function decodeKeyboardAction(type: string): KeyboardAction {
     case "EnterHintsMode_ManyTab":
     case "EnterHintsMode_Select":
     case "ReverseSelection":
+    case "YankCurrentURL":
     case "Escape":
     case "ActivateHint":
     case "ActivateHintAlt":

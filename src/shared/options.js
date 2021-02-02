@@ -168,6 +168,10 @@ export function getDefaults({ mac }: { mac: boolean }): Options {
         action: "EnterHintsMode_Click",
       },
       {
+        shortcut: mainShortcut("y"),
+        action: "YankCurrentURL",
+      },
+      {
         shortcut: mainShortcut("k"),
         action: "EnterHintsMode_BackgroundTab",
       },
